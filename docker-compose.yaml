@@ -1,0 +1,54 @@
+version: '3.2'
+
+services:
+  django-admin:
+    container_name: "django-admin"
+    build:
+      dockerfile: Dockerfile
+      context: ./django-admin
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    volumes:
+      - cv_builder_static_volume:/code/staticfiles
+      - cv_builder_media_volume:/code/mediafiles
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - django-admin
+    links:
+      - django-admin
+    volumes:
+      - cv_builder_static_volume:/code/staticfiles
+      - cv_builder_media_volume:/code/mediafiles
+
+  db:
+    container_name: "database_cv"
+    image: postgres:12.0-alpine
+    volumes:
+      - cv_builder_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'Hey!?IKnowYou'
+      POSTGRES_DB: 'cv_db'
+    expose:
+      - 5434
+    ports:
+      - 5434:5434
+    command:
+      - "postgres"
+      - "-c"
+      - "port=5434"
+
+
+volumes:
+  cv_builder_data:
+  cv_builder_static_volume:
+  cv_builder_media_volume:
