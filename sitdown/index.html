@@ -97,8 +97,7 @@
 	<script>
         $(document).ready(function (){
 			//var myDate = new Date("08/04/2019");
-			var myDate = new Date();
-			myDate.setDate(myDate.getDate() + 50);
+            const myDate = new Date('2022-10-17T03:24:00');
             $("#countdown").countdown(myDate, function (event) {
                 $(this).html(
                     event.strftime(
