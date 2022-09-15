@@ -50,7 +50,7 @@ class AdminProfile(ModelAdmin):
         'avatar', 'theme', 'include_blogs', 'can_download_cv',
     )
     list_display = ('__str__', 'phone', 'email', 'include_blogs', 'can_download_cv', 'admin_thumbnail',)
-    list_editable = ('phone', 'email', 'include_blogs', 'can_download_cv',)
+    list_editable = ('include_blogs', 'can_download_cv',)
     inlines = [
         AboutInline,
         WhatIDoInline,
