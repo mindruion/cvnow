@@ -107,7 +107,7 @@ class About(AbstractModel):
 
 class WhatIDo(AbstractModel):
     title = models.CharField(max_length=100)
-    des = models.CharField(max_length=400)
+    des = models.TextField()
     bg = ColorField(max_length=400)
     icon = models.ImageField(null=True, blank=True)
 
@@ -115,8 +115,8 @@ class WhatIDo(AbstractModel):
 class AbstractEducation(AbstractModel):
     from_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    title = models.CharField(max_length=100)
-    place = models.CharField(max_length=400)
+    title = models.TextField()
+    place = models.TextField()
     bg = ColorField(max_length=400)
 
     @property
