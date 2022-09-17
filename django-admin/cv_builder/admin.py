@@ -3,7 +3,7 @@ from django.contrib.admin import register, ModelAdmin
 from imagekit.admin import AdminThumbnail
 
 from cv_builder.models import Resume, About, WhatIDo, Education, Experience, WorkingSkills, Knowledge, Blog, \
-    ContactMessage
+    ContactMessage, Language
 
 
 class AboutInline(admin.StackedInline):
@@ -43,20 +43,27 @@ class KnowledgeInline(admin.StackedInline):
     extra = 0
 
 
+class LanguageInline(admin.StackedInline):
+    model = Language
+    min_num = 1
+    extra = 0
+
+
 @register(Resume)
 class AdminProfile(ModelAdmin):
     fields = (
         'profession', 'phone', 'email', 'location', 'birth_date', 'facebook', 'linkedin',
         'avatar', 'theme', 'include_blogs', 'can_download_cv',
     )
-    list_display = ('__str__', 'phone', 'email', 'include_blogs', 'can_download_cv', 'admin_thumbnail',)
-    list_editable = ('include_blogs', 'can_download_cv',)
+    list_display = ('__str__', 'phone', 'email', 'include_blogs', 'can_download_cv', 'is_active', 'admin_thumbnail',)
+    list_editable = ('include_blogs', 'can_download_cv', 'is_active')
     inlines = [
         AboutInline,
-        WhatIDoInline,
-        EducationInline,
         ExperienceInline,
+        EducationInline,
         WorkingSkillsInline,
+        LanguageInline,
+        WhatIDoInline,
         KnowledgeInline,
     ]
     save_on_top = True

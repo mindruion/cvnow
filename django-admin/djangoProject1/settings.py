@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'imagekit',
     "corsheaders",
     'cv_builder',
-
+    'tinymce',
 ]
 
 X_FRAME_OPTIONS = "SAMEORIGIN"

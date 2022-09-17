@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 urlpatterns = static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + [
     path('', include("cv_builder.urls")),
     path('', admin.site.urls),
+    path('tinymce/', include('tinymce.urls')),
 ]
 admin.site.site_header = 'Cv Builder'
 admin.site.site_title = 'Cv Builder'

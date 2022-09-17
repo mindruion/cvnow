@@ -26,6 +26,7 @@ class Resume(models.Model):
         LIGHT = 'light'
         DARK = 'dark'
 
+    is_active = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=CASCADE)
     profession = models.CharField(max_length=200, null=True)
     phone = models.CharField(max_length=200, null=True)
@@ -102,13 +103,13 @@ class About(AbstractModel):
         on_delete=models.CASCADE,
     )
     description = models.TextField()
-    short_description = models.CharField(max_length=400)
+    short_description = models.TextField(null=True)
 
 
 class WhatIDo(AbstractModel):
     title = models.CharField(max_length=100)
-    des = models.TextField()
-    bg = ColorField(max_length=400)
+    des = models.TextField(verbose_name="Description")
+    bg = ColorField(max_length=400, verbose_name="Background color")
     icon = models.ImageField(null=True, blank=True)
 
 
@@ -144,6 +145,12 @@ class Experience(AbstractEducation):
 
 
 class WorkingSkills(AbstractModel):
+    percentage = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
+    title = models.CharField(max_length=20)
+    color = ColorField(max_length=400, default="#5185D4")
+
+
+class Language(AbstractModel):
     percentage = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
     title = models.CharField(max_length=20)
     color = ColorField(max_length=400, default="#5185D4")

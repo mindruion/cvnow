@@ -2,7 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
 from cv_builder.models import Resume, About, Knowledge, WorkingSkills, Experience, Education, WhatIDo, Blog, \
-    ContactMessage
+    ContactMessage, Language
 
 
 class AboutSerializer(serializers.ModelSerializer):
@@ -38,6 +38,11 @@ class WorkingSkillsSerializer(serializers.ModelSerializer):
         model = WorkingSkills
         exclude = ("id", "created_by")
 
+class LanguageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Language
+        exclude = ("id", "created_by")
+
 
 class KnowledgeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -57,6 +62,7 @@ class ResumeSerializer(serializers.ModelSerializer):
     educations = EducationSerializer(source="education_set", many=True)
     experiences = ExperienceSerializer(source="experience_set", many=True)
     working_skills = WorkingSkillsSerializer(source="workingskills_set", many=True)
+    languages = LanguageSerializer(source="language_set", many=True)
     knowledge = KnowledgeSerializer(source="knowledge_set", many=True)
     name = serializers.CharField(source="user.name")
     blogs = serializers.SerializerMethodField()

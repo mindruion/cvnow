@@ -21,7 +21,8 @@ def get_site_data(request, subdomain):
     token = request.GET.get("token")
     resume_qs = Resume.objects.filter(
         user__subdomain_name=subdomain,
-        is_private=True if token else False
+        is_private=True if token else False,
+        is_active=True
     ).select_related('user', 'about')
     resume = resume_qs.first()
     if not resume:
@@ -41,7 +42,7 @@ def get_site_data(request, subdomain):
 @api_view(["POST"])
 def create_comment(request, subdomain):
     try:
-        resume = Resume.objects.filter(user__subdomain_name=subdomain).first()
+        resume = Resume.objects.filter(user__subdomain_name=subdomain, is_active=True).first()
         serializer = ContactSerializer(data={**request.data, "created_by": resume.id})
         serializer.is_valid(raise_exception=True)
         serializer.save()
