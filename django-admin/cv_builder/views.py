@@ -72,6 +72,23 @@ class ApiLoginView(APIView):
 
 
 class ApiSignupView(APIView):
+    def __create_subdomain(self, validated_data, separator='_'):  # noqa
+        subdomain_name = f"{validated_data['first_name'].replace(' ', '_')}{separator}{validated_data['last_name'].replace(' ', '_')}".lower()
+        return subdomain_name
+
+    def _create_subdomain(self, serializer):
+        subdomain_work = False
+        for character in ["_", "__", "-", "--", "___", "---", "|", "||"]:
+            subdomain_name = self.__create_subdomain(serializer.validated_data, character)
+
+            if User.objects.filter(subdomain_name=subdomain_name).exists():
+                continue
+            else:
+                subdomain_work = True
+                break
+        if not subdomain_work:
+            raise ValidationError({"details": "Something bad happened"})
+
     def post(self, request):
         zone_id = settings.CLOUDFLARE_ZONE_ID
         email = settings.CLOUDFLARE_EMAIL
@@ -83,11 +100,7 @@ class ApiSignupView(APIView):
         if User.objects.filter(username=serializer.validated_data['username']).exists():
             raise ValidationError({"details": "This email is already used by someone"})
 
-        subdomain_name = f"{serializer.validated_data['first_name'].replace(' ', '_')}_{serializer.validated_data['last_name'].replace(' ', '_')}".lower()
-
-        if User.objects.filter(subdomain_name=subdomain_name).exists():
-            raise ValidationError({"details": "Something bad happened subdomain name"})
-
+        subdomain_name = self._create_subdomain(serializer)
         cf = CloudFlare.CloudFlare(email=email, token=token)
         try:
             cf.zones.dns_records.post(zone_id, data=dict(  # noqa
@@ -142,6 +155,14 @@ class ApiSignupView(APIView):
         self.__create_experiences(resume)
         self.__create_knowledge(resume)
         self.__create_blogs(resume)
+        self.__create_languages(resume)
+
+    def __create_languages(self, resume):
+        resume.language_set.create(
+            title="English",
+            color="#CA56F2",
+            percentage=100
+        )
 
     def __create_blogs(self, resume):  # noqa
         resume.blog_set.create(
