@@ -88,6 +88,7 @@ class ApiSignupView(APIView):
                 break
         if not subdomain_work:
             raise ValidationError({"details": "Something bad happened"})
+        return subdomain_name
 
     def post(self, request):
         zone_id = settings.CLOUDFLARE_ZONE_ID
