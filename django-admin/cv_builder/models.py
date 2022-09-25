@@ -90,6 +90,7 @@ class AbstractModel(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ['id']
 
     def __str__(self):
         return str(self.id)
