@@ -72,7 +72,7 @@ class ResumeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resume
         exclude = (
-            "id", "language", "user", "private_token", "private_token_lifetime", "private_token_created", "is_private")
+            "id", "user", "private_token", "private_token_lifetime", "private_token_created", "is_private")
 
     def get_blogs(self, obj: Resume):  # noqa
         if obj.include_blogs:
