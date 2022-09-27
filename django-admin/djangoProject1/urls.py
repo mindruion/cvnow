@@ -20,8 +20,9 @@ from django.urls import path, include
 from django.conf.urls.static import static
 
 urlpatterns = static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + [
-    path('i18n/', include('django.conf.urls.i18n')), ] + i18n_patterns(
     path('', include("cv_builder.urls")),
+    path('i18n/', include('django.conf.urls.i18n')),
+] + i18n_patterns(
     path('', admin.site.urls),
     path('rosetta/', include('rosetta.urls')),  # NEW
     path('tinymce/', include('tinymce.urls')),
