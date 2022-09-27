@@ -38,6 +38,7 @@ class WorkingSkillsSerializer(serializers.ModelSerializer):
         model = WorkingSkills
         exclude = ("id", "created_by")
 
+
 class LanguageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Language
@@ -65,11 +66,13 @@ class ResumeSerializer(serializers.ModelSerializer):
     languages = LanguageSerializer(source="language_set", many=True)
     knowledge = KnowledgeSerializer(source="knowledge_set", many=True)
     name = serializers.CharField(source="user.name")
+    language = serializers.CharField(source="language_used")
     blogs = serializers.SerializerMethodField()
 
     class Meta:
         model = Resume
-        exclude = ("id", "user", "private_token", "private_token_lifetime", "private_token_created", "is_private")
+        exclude = (
+            "id", "language", "user", "private_token", "private_token_lifetime", "private_token_created", "is_private")
 
     def get_blogs(self, obj: Resume):  # noqa
         if obj.include_blogs:

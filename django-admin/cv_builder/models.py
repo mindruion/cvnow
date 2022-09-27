@@ -26,6 +26,10 @@ class Resume(models.Model):
         LIGHT = 'light'
         DARK = 'dark'
 
+    class Language(models.TextChoices):
+        EN = 'en'
+        ro = 'ro'
+
     is_active = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=CASCADE)
     profession = models.CharField(max_length=200, null=True)
@@ -42,6 +46,7 @@ class Resume(models.Model):
     private_token_created = models.DateTimeField(null=True)
     can_download_cv = models.BooleanField(default=True)
     include_blogs = models.BooleanField(default=True)
+    language_used = models.CharField(max_length=20, choices=Language.choices, default=Language.EN)
 
     avatar = models.ImageField(null=True, blank=True)
     avatar_thumbnail = ProcessedImageField(

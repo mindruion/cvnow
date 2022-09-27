@@ -66,7 +66,6 @@ class AdminProfile(ModelAdmin):
         WhatIDoInline,
         KnowledgeInline,
     ]
-    save_on_top = True
     admin_thumbnail = AdminThumbnail(image_field='avatar_thumbnail')
 
     def get_queryset(self, request):
