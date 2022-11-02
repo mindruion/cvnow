@@ -56,7 +56,7 @@ class AdminProfile(ModelAdmin):
         'avatar', 'theme', 'include_blogs', 'can_download_cv', 'language'
     )
     list_display = ('__str__', 'phone', 'email', 'include_blogs', 'can_download_cv', 'is_active', 'admin_thumbnail',
-                    'language')
+                    'language_used')
     list_editable = ('include_blogs', 'can_download_cv', 'is_active')
     inlines = [
         AboutInline,
