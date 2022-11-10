@@ -1,0 +1,345 @@
+/*-----------------------------------------------------------------------------------
+
+    Template Name:TOVO APP
+    Template URI: http://themes.pixelstrap.com/tovo
+    Description: This is App Landing Page
+    Author: Pixelstrap
+    Author URI: https://themeforest.net/user/pixelstrap
+
+-----------------------------------------------------------------------------------*/
+.caption-img {
+  filter: hue-rotate(15deg);
+}
+
+.loader {
+  background-color: #FF975D;
+}
+
+h1 {
+  color: #FF975D;
+}
+
+.price-type h2 {
+  color: #FF975D;
+}
+
+.home-two .slide-cap-desc {
+  color: #f1f1f1;
+}
+
+.home-style-two .home-two .slide-cap-desc {
+  color: white !important;
+}
+.home-style-two .navbar-nav .dropdown-menu .nav-link:hover {
+  color: #FF975D !important;
+}
+
+.color-picker .settings-header {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%) !important;
+}
+.color-picker .settings-header h3 {
+  color: white !important;
+}
+.color-picker .section {
+  border: 1px solid #FF975D;
+}
+.color-picker a.handle {
+  border: 1px solid #FF975D;
+  background: #FF975D;
+}
+
+.tap-top {
+  background: linear-gradient(to right, #FF975D, #FF975D) !important;
+  color: white;
+}
+
+.slide-cap-desc {
+  color: #f1f1f1;
+}
+
+.about-right {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%);
+}
+
+.address-bar {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%);
+}
+
+.team-block .team-social li a {
+  border: 1px solid #FF975D;
+}
+.team-block .team-social li a:hover {
+  background-color: #FF975D;
+  border: 1px solid #FF975D;
+}
+
+.navbar-brand img {
+  filter: hue-rotate(15deg);
+}
+
+.home-circle1 img {
+  filter: hue-rotate(15deg);
+}
+
+.home-circle2 img {
+  filter: hue-rotate(15deg);
+}
+
+.home-circle3 img {
+  filter: hue-rotate(15deg);
+}
+
+.home-right img {
+  filter: hue-rotate(15deg);
+}
+
+.about-phone img {
+  filter: hue-rotate(15deg);
+}
+
+.feature-phone img {
+  filter: hue-rotate(15deg);
+}
+
+.about-circle1 img {
+  filter: hue-rotate(15deg);
+}
+
+.about-circle2 img {
+  filter: hue-rotate(15deg);
+}
+
+.feature-style .feature-icon img {
+  filter: hue-rotate(15deg);
+}
+
+.feature-circle1 img {
+  filter: hue-rotate(15deg);
+}
+
+.feature-circle2 img {
+  filter: hue-rotate(15deg);
+}
+
+.screenshot-circle1 img {
+  filter: hue-rotate(15deg);
+}
+
+.screenshot-circle2 img {
+  filter: hue-rotate(15deg);
+}
+
+.screenshot-circle3 img {
+  filter: hue-rotate(15deg);
+}
+
+.screenshot-carousel img {
+  filter: hue-rotate(15deg);
+}
+
+.team-circle1 img {
+  filter: hue-rotate(15deg);
+}
+
+.team-circle2 img {
+  filter: hue-rotate(15deg);
+}
+
+.team-circle3 img {
+  filter: hue-rotate(15deg);
+}
+
+.testi-circle1 img {
+  filter: hue-rotate(15deg);
+}
+
+.testi-circle2 img {
+  filter: hue-rotate(15deg);
+}
+
+.testi-circle3 img {
+  filter: hue-rotate(15deg);
+}
+
+.contact-right img {
+  filter: hue-rotate(15deg);
+}
+
+.contact-circle1 img {
+  filter: hue-rotate(15deg);
+}
+
+.contact-circle2 img {
+  filter: hue-rotate(15deg);
+}
+
+.animated-circle img {
+  filter: hue-rotate(15deg);
+}
+
+.footer-text img {
+  filter: hue-rotate(15deg);
+}
+
+.testimonial-text h3 {
+  color: #FF975D;
+}
+
+.btn-custom.theme-color {
+  background-image: linear-gradient(to right, #FF975D, #25e0ff, #29ceff, #FF975D);
+}
+.btn-custom.theme-color:hover {
+  background-position: 100% 0;
+}
+
+#fp-nav ul li a span {
+  background: #FF975D !important;
+}
+#fp-nav ul li a.active {
+  border: 1px solid #FF975D;
+}
+#fp-nav ul li a.active span {
+  background: #FF975D !important;
+}
+#fp-nav ul li:hover a.active span {
+  background: #FF975D !important;
+}
+
+.fp-slidesNav ul li a span {
+  background: #FF975D !important;
+}
+.fp-slidesNav ul li a.active span {
+  background: #FF975D !important;
+}
+.fp-slidesNav ul li:hover a.active span {
+  background: #FF975D !important;
+}
+
+.abt-hover:hover .icon-hover {
+  background: linear-gradient(to right, #FF975D, #FF975D) !important;
+}
+
+.navbar-light .default-nav .navbar-nav .nav-link.active {
+  color: #FF975D;
+}
+.navbar-light.darkHeader .navbar-nav .nav-link.active {
+  color: #FF975D !important;
+}
+
+.navbar-light .navbar-nav .nav-item.dropdown-menu .nav-link:hover {
+  color: #FF975D !important;
+}
+.navbar-light .navbar-nav .nav-item.dropdown-menu .nav-link:focus {
+  color: #FF975D !important;
+}
+
+.three .navbar-nav .dropdown-menu .nav-link:hover {
+  color: #FF975D !important;
+}
+
+.icon-hover:hover {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%);
+  border: 1px solid #FF975D;
+}
+
+.team-carousel.owl-theme .owl-dots .owl-dot span {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%) !important;
+}
+.team-carousel.owl-theme .owl-dots .owl-dot.active span {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%);
+}
+
+/* .slick-dots li button:before {
+    background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%) !important; }
+  
+
+.slick-dots li.slick-active button:before {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%) !important; } */
+
+.blog-carousel.owl-theme .owl-dots .owl-dot span {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%) !important;
+}
+.blog-carousel.owl-theme .owl-dots .owl-dot.active span {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%);
+}
+
+.testimonial-carousel.owl-theme .owl-dots .owl-dot span {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%) !important;
+}
+.testimonial-carousel.owl-theme .owl-dots .owl-dot.active span {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%);
+}
+
+.price-carousel.owl-theme .owl-dots .owl-dot span {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 99%) !important;
+}
+
+.blog-pagin a.page-link {
+  color: #FF975D;
+  border: 1px solid #eee;
+}
+.blog-pagin a.page-link:hover {
+  background-color: #FF975D;
+}
+
+.page-item.active .page-link {
+  background-color: #FF975D;
+}
+
+.tags .badge-theme {
+  background-color: #FF975D;
+  color: white;
+}
+
+.blog-cat-detail ul li a:hover {
+  color: #FF975D;
+}
+
+.price-block:hover .mrp h2,
+.manual-down {
+  color: #FF975D;
+}
+
+@media (max-width: 768px) {
+  .home-two,
+  .home-three {
+    background-color: #FF975D;
+  }
+}
+.authentication-form {
+  filter: hue-rotate(15deg);
+}
+
+.innerpage-decor img {
+  filter: hue-rotate(15deg);
+}
+
+.review-box h5 {
+  color: #FF975D;
+}
+
+.theme-nav .nav-item:hover .nav-link {
+  color: #FF975D;
+}
+.theme-nav .nav-item.dropdown .dropdown-menu .nav-item .nav-link.active {
+  color: #FF975D !important;
+}
+.theme-nav .nav-item.dropdown .dropdown-menu .nav-item .nav-link:hover {
+  color: #FF975D !important;
+  transition: all 0.3s ease;
+}
+.theme-nav.darkHeader .dropdown-menu .nav-item .nav-link.active {
+  color: #FF975D;
+}
+.theme-nav .navbar-nav .active > .nav-link {
+  color: #FF975D;
+}
+
+.rounded-dots .slick-dots .slick-active button:before {
+  background: linear-gradient(to bottom, #FF975D 0, #FF975D 100%);
+  background: #FF975D;
+}
+
+.theme-nav .nav-item.dropdown .dropdown-menu .dropdown-item .nav-link:hover {
+  color: #FF975D !important;
+}
