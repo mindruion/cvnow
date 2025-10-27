@@ -47,10 +47,10 @@ const CommonPortfilo = ({ condition, items }) => {
       {/* End pagetitle */}
 
       <section className="bg-white  lg:rounded-2xl dark:bg-[#111111]">
-        <div data-aos="fade">
+        <div data-aos="fade-up">
           <div className="container mb-8   px-4 sm:px-5 md:px-10 lg:px-[60px]">
             <div className="py-12">
-              <h2 className="after-effect  after:left-48  lg:mt-0">
+              <h2 className="after-effect  after:left-48  lg:mt-0" data-aos="fade-right" data-aos-delay="120">
                 Portfolio
               </h2>
 
@@ -65,6 +65,8 @@ const CommonPortfilo = ({ condition, items }) => {
                   className={`${
                     test === "All" ? "text-theme-primary" : "fillter-btn "
                   } mr-4 md:mx-4`}
+                  data-aos="zoom-in"
+                  data-aos-delay="160"
                   onClick={() => handleSearch("All")}
                 >
                   All
@@ -73,6 +75,8 @@ const CommonPortfilo = ({ condition, items }) => {
                   className={`${
                     test === "Video" ? "text-theme-primary" : "fillter-btn"
                   } mr-4 md:mx-4`}
+                  data-aos="zoom-in"
+                  data-aos-delay="200"
                   onClick={() => handleSearch("Video")}
                 >
                   Video
@@ -81,6 +85,8 @@ const CommonPortfilo = ({ condition, items }) => {
                   className={`${
                     test === "Web Design" ? "text-theme-primary" : "fillter-btn"
                   } mr-4 md:mx-4`}
+                  data-aos="zoom-in"
+                  data-aos-delay="240"
                   onClick={() => handleSearch("Web Design")}
                 >
                   Web Design
@@ -89,6 +95,8 @@ const CommonPortfilo = ({ condition, items }) => {
                   className={`${
                     test === "Logo" ? "text-theme-primary" : "fillter-btn ml-0"
                   } mr-4 md:mx-4`}
+                  data-aos="zoom-in"
+                  data-aos-delay="280"
                   onClick={() => handleSearch("Logo")}
                 >
                   Logo
@@ -97,6 +105,8 @@ const CommonPortfilo = ({ condition, items }) => {
                   className={`${
                     test === "UI/UX" ? "text-theme-primary" : "fillter-btn"
                   }  `}
+                  data-aos="zoom-in"
+                  data-aos-delay="320"
                   onClick={() => handleSearch("UI/UX")}
                 >
                   Graphic Design
@@ -113,7 +123,7 @@ const CommonPortfilo = ({ condition, items }) => {
               className="my-masonry-grid"
               columnClassName="my-masonry-grid_column"
             >
-              {data.slice(0, items).map((item) => (
+              {data.slice(0, items).map((item, index) => (
                 <div
                   style={{
                     background: `${
@@ -121,6 +131,8 @@ const CommonPortfilo = ({ condition, items }) => {
                     }`,
                   }}
                   className="rounded-lg p-6 dark:border-[2px] border-[#212425]"
+                  data-aos="fade-up"
+                  data-aos-delay={`${180 + index * 80}`}
                   key={item.id}
                 >
                   <div className=" overflow-hidden rounded-lg">

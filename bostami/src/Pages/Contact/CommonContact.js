@@ -59,7 +59,7 @@ const CommonContact = ({ condition }) => {
           : "  dark:border-[#212425] dark:border-2 mb-16  md:p-[48px]  p-4  "
       } bg-color-810 rounded-xl dark:bg-[#111111] mb-[30px] md:mb-[60px]`}
     >
-      <h3 className="text-4xl  ">
+      <h3 className="text-4xl  " data-aos="fade-up" data-aos-delay="160">
         <span className="text-gray-lite dark:text-[#A6A6A6] ">
           I'm always open to discussing product
         </span>
@@ -71,7 +71,7 @@ const CommonContact = ({ condition }) => {
 
       {/* Form Start */}
       <form id="myForm" ref={form} onSubmit={sendEmail}>
-        <div className="relative  z-0 w-full mt-[40px] mb-8 group">
+        <div className="relative  z-0 w-full mt-[40px] mb-8 group" data-aos="fade-up" data-aos-delay="200">
           <input
             type="text"
             name="name"
@@ -86,7 +86,7 @@ const CommonContact = ({ condition }) => {
             Name *
           </label>
         </div>
-        <div className="relative z-0 w-full mb-8 group">
+        <div className="relative z-0 w-full mb-8 group" data-aos="fade-up" data-aos-delay="240">
           <input
             type="email"
             name="user_email"
@@ -102,7 +102,7 @@ const CommonContact = ({ condition }) => {
             Email *
           </label>
         </div>
-        <div className="relative z-0 w-full mb-8 group">
+        <div className="relative z-0 w-full mb-8 group" data-aos="fade-up" data-aos-delay="280">
           <input
             type="text"
             name="message"
@@ -119,7 +119,7 @@ const CommonContact = ({ condition }) => {
           </label>
         </div>
 
-        <div className="transition-all duration-300 ease-in-out inline-block gradient-theme gradient-theme-hover rounded-lg mt-3">
+        <div className="transition-all duration-300 ease-in-out inline-block gradient-theme gradient-theme-hover rounded-lg mt-3" data-aos="zoom-in" data-aos-delay="320">
           <input
             type="submit"
             className=" transition ease-in duration-200 font-semibold cursor-pointer border-color-910   hover:border-transparent px-6  py-2 rounded-lg border-[2px]  hover:text-white   dark:text-white "

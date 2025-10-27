@@ -73,7 +73,7 @@ class ResumeSerializer(serializers.ModelSerializer):
     experiences = ExperienceSerializer(source="experience_set", many=True)
     working_skills = WorkingSkillsSerializer(source="workingskills_set", many=True)
     languages = LanguageSerializer(source="language_set", many=True)
-    knowledge = serializers.SerializerMethodField()
+    knowledge = KnowledgeSerializer(source="knowledge_set", many=True)
     name = serializers.CharField(source="user.name")
     language = serializers.CharField(source="language_used")
     blogs = serializers.SerializerMethodField()

@@ -9,7 +9,12 @@ const HeaderTwo = () => {
   const a = useLocation();
 
   return (
-    <header style={{width: apiData?.include_blogs ? "500px" : "400px"}} className={`lg:w-[526] h-[144px] hidden lg:block  p-[30px] ml-auto mb-10  rounded-[16px] bg-white dark:bg-[#111111]`}>
+    <header
+      style={{width: apiData?.include_blogs ? "500px" : "400px"}}
+      className={`lg:w-[526] h-[144px] hidden lg:block  p-[30px] ml-auto mb-10  rounded-[16px] bg-white dark:bg-[#111111]`}
+      data-aos="fade-up"
+      data-aos-delay="180"
+    >
       {/* menu for mobile devices*/}
       <nav className={`${menuOpen ? "block mx-auto" : "hidden lg:block"}`}>
         <ul

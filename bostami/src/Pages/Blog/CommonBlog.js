@@ -22,11 +22,11 @@ const CommonBlog = ({ items, count }) => {
       {/* End pagetitle */}
 
       <section className="bg-white  lg:rounded-2xl dark:bg-[#111111]">
-        <div data-aos="fade">
+        <div data-aos="fade-up">
           <div className="container px-4 sm:px-5 md:px-10 lg:px-[60px]">
             <div className="py-12">
               {/* Blog page title */}
-              <h2 className="after-effect after:left-32 mt-12 lg:mt-0">
+              <h2 className="after-effect after:left-32 mt-12 lg:mt-0" data-aos="fade-right" data-aos-delay="120">
                 Blogs
               </h2>
               <div
@@ -37,7 +37,7 @@ const CommonBlog = ({ items, count }) => {
                 } grid   gap-x-10 gap-y-7  mb-6`}
               >
                 {/* Blog items start */}
-                {apiData.blogs?.slice(0, count)?.map((item) => {
+                {apiData.blogs?.slice(0, count)?.map((item, index) => {
                   return (
                     <div
                       key={item.id}
@@ -47,6 +47,8 @@ const CommonBlog = ({ items, count }) => {
                         }`,
                       }}
                       className="p-5 rounded-lg mb-2 h-full dark:border-[#212425] dark:border-2"
+                      data-aos="fade-up"
+                      data-aos-delay={`${160 + index * 120}`}
                     >
                       <div className="overflow-hidden rounded-lg">
                         <img

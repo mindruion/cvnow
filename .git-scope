@@ -1,0 +1,37 @@
+#!/bin/bash
+# Git wrapper that automatically scopes commands to the current subdirectory
+# Add this to your PATH or source it in your shell
+
+git() {
+    # Get the current directory relative to git root
+    REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+    
+    if [ -z "$REPO_ROOT" ]; then
+        # Not in a git repo, use normal git
+        command git "$@"
+        return
+    fi
+    
+    # Get current directory relative to repo root
+    CURRENT_DIR=${PWD#${REPO_ROOT}/}
+    
+    # List of commands that benefit from path scoping
+    SCOPEABLE_COMMANDS="diff status log show"
+    
+    FIRST_ARG="$1"
+    
+    # Only scope if we're in a subdirectory (not at repo root)
+    if [ "$CURRENT_DIR" != "$PWD" ] && [ "$CURRENT_DIR" != "" ]; then
+        for cmd in $SCOPEABLE_COMMANDS; do
+            if [ "$FIRST_ARG" = "$cmd" ]; then
+                # Add the current directory as a path filter
+                command git "$@" -- "$CURRENT_DIR"
+                return
+            fi
+        done
+    fi
+    
+    # Normal git execution
+    command git "$@"
+}
+

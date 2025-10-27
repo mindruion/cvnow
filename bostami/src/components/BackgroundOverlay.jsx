@@ -82,6 +82,9 @@ const generatePositions = (count, seed, config) => {
   return positions;
 };
 
+const getViewportWidth = () =>
+  (typeof window !== "undefined" && window.innerWidth) || 1280;
+
 const BackgroundOverlay = () => {
   const { theme, activeThemeId, themeMode } = UseData();
   const overlayConfig =
@@ -90,6 +93,7 @@ const BackgroundOverlay = () => {
     };
 
   const [dots, setDots] = useState([]);
+  const [viewportWidth, setViewportWidth] = useState(getViewportWidth);
 
   const color = useMemo(
     () => toCssVar(overlayConfig.color),
@@ -102,12 +106,41 @@ const BackgroundOverlay = () => {
   const overlayVariance = overlayConfig?.animation?.variance;
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return () => {};
+    }
+
+    const handleResize = () => {
+      setViewportWidth(getViewportWidth());
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
     if (!overlayEnabled) {
       setDots([]);
       return;
     }
 
-    const density = Math.max(10, Math.min(overlayDensity || 80, 200));
+    const densityBase = overlayDensity || 80;
+    const viewportMultiplier = viewportWidth >= 1600
+      ? 2
+      : viewportWidth >= 1440
+        ? 1.8
+        : viewportWidth >= 1280
+          ? 1.6
+          : viewportWidth >= 1024
+            ? 1.4
+            : viewportWidth >= 768
+              ? 1.15
+              : 1;
+
+    const density = Math.max(
+      16,
+      Math.min(Math.round(densityBase * viewportMultiplier), 260)
+    );
     const seed =
       (activeThemeId?.length || 1) * 31 +
       density * 17 +
@@ -126,6 +159,7 @@ const BackgroundOverlay = () => {
     overlayVariance,
     activeThemeId,
     themeMode,
+    viewportWidth,
   ]);
 
   if (!overlayConfig.enabled) {

@@ -3,6 +3,53 @@ import {Document, Page, Image, Link, Svg, Line, Text, View, Path, StyleSheet, G}
 import img from "../../assets/images/about/avatar.jpg";
 
 
+const PAGE_WIDTH = 842;
+const PAGE_HEIGHT = 1191;
+
+const hashStringToSeed = (value = "") => {
+    let hash = 0;
+    for (let index = 0; index < value.length; index += 1) {
+        hash = (hash * 31 + value.charCodeAt(index)) % 2147483647;
+    }
+    return hash || 1729;
+};
+
+const createSeededRandom = (seedValue) => {
+    let seed = seedValue % 2147483647;
+    if (seed <= 0) {
+        seed += 2147483646;
+    }
+
+    return () => {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+    };
+};
+
+const generatePointPattern = (count, seedValue, colors) => {
+    const random = createSeededRandom(seedValue);
+    const paletteColors = colors && colors.length ? colors : ["#4A5568"];
+    const points = [];
+
+    for (let index = 0; index < count; index += 1) {
+        const size = 3 + random() * 9;
+        const opacity = 0.18 + random() * 0.32;
+        const color = paletteColors[index % paletteColors.length];
+
+        points.push({
+            key: `${index}-${color}`,
+            left: random() * PAGE_WIDTH,
+            top: random() * PAGE_HEIGHT,
+            size,
+            opacity,
+            color,
+        });
+    }
+
+    return points;
+};
+
+
 let styles = StyleSheet.create({
     Skills: {
         fontFamily: "Times-BoldItalic",
@@ -27,12 +74,29 @@ let styles = StyleSheet.create({
         display: 'block',
         height: '100%',
         width: '100%',
-        zIndex: 30,
+        zIndex: 1000,
+    },
+    darkBackground: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#050505',
+        zIndex: 1000,
+        overflow: 'hidden',
+    },
+    backgroundDot: {
+        position: 'absolute',
+        borderRadius: 9999,
+        zIndex: 900,
     },
     container: {
         containerType: 'inline-size',
         width: "100%",
         height: "100%",
+        position: 'relative',
+        zIndex: 0,
     },
     avatar: {
         position: 'absolute',
@@ -250,13 +314,30 @@ if (localStorage?.getItem("theme") === "dark") {
             display: 'block',
             height: '100%',
             width: '100%',
-            zIndex: 30,
+            zIndex: 1000,
+        },
+        darkBackground: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#050505',
+            zIndex: 1000,
+            overflow: 'hidden',
+        },
+        backgroundDot: {
+            position: 'absolute',
+            borderRadius: 9999,
+            zIndex: 900,
         },
         container: {
             containerType: 'inline-size',
             width: "100%",
             height: "100%",
             color: "white",
+            position: 'relative',
+            zIndex: 0,
         },
         avatar: {
             position: 'absolute',
@@ -514,12 +595,50 @@ const MyDocument = ({data, theme}) => {
     const softBorder = palette.border || "#EDF2F2";
     const themeMode = theme?.mode || localStorage?.getItem("theme");
     let isDarkTheme = themeMode === "dark";
+    const pointColors = [
+        palette.primary,
+        palette.secondary,
+        variants[0],
+        variants[1],
+        variants[2],
+        "#4A5568",
+        "#718096",
+    ].filter(Boolean);
+    const pointSeed = hashStringToSeed(`${data?.name || "bostami"}-${themeMode || "light"}`);
+    const pointPattern = isDarkTheme ? generatePointPattern(220, pointSeed, pointColors) : [];
     return (<Document>
         <Page size="A3">
-            <View fixed={true} style={styles.container}>
+            {isDarkTheme ? (
+                <View
+                    fixed
+                    style={[styles.darkBackground, {backgroundColor: palette.background || "#050505"}]}
+                >
+                    {pointPattern.map((point) => (
+                        <View
+                            key={point.key}
+                            style={[
+                                styles.backgroundDot,
+                                {
+                                    left: point.left,
+                                    top: point.top,
+                                    width: point.size,
+                                    height: point.size,
+                                    borderRadius: point.size / 2,
+                                    backgroundColor: point.color,
+                                    opacity: point.opacity,
+                                },
+                            ]}
+                        />
+                    ))}
+                </View>
+            ) : (
                 <Image
-                    src={isDarkTheme ? "static/media/bg-dark.22a21299a987d11c91c0.jpg" : "static/media/bg.54122ef3ac6eced211d3.jpg"}
-                    style={styles.pageBackground}/>
+                    fixed
+                    src="static/media/bg.54122ef3ac6eced211d3.jpg"
+                    style={styles.pageBackground}
+                />
+            )}
+            <View style={styles.container}>
                 <Image src={img} style={styles.avatar}/>
                 <View fixed={true} style={styles.profileDetails}>
                     <Text style={styles.name}>

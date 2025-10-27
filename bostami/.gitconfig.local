@@ -1,0 +1,5 @@
+[alias]
+    diff-dir = "!cd \"$(git rev-parse --show-toplevel)\" && git diff HEAD \"$PWD\""
+    status-dir = "!cd \"$(git rev-parse --show-toplevel)\" && git status \"$PWD\""
+    log-dir = "!cd \"$(git rev-parse --show-toplevel)\" && git log \"$PWD\""
+

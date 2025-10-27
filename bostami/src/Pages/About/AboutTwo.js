@@ -15,22 +15,22 @@ const AboutTwo = () => {
       {/* End pagetitle */}
 
       <div className=" lg:rounded-2xl bg-white dark:bg-[#111111]">
-        <div data-aos="fade">
+        <div data-aos="fade-up">
           <div className=" pt-12 md:py-12 px-2 sm:px-5 md:px-10 lg:px-14 ">
             {/* About page title */}
-            <h2 className="after-effect after:left-52">About Me</h2>
-            <div className="lg:hidden">
+            <h2 className="after-effect after:left-52" data-aos="fade-right" data-aos-delay="120">About Me</h2>
+            <div className="lg:hidden" data-aos="fade-up" data-aos-delay="160">
               {/* Sidebar personal information for mobile devices */}
               <HomeCard />
             </div>
-            <div className="lg:grid grid-cols-12 md:gap-10 pt-4 md:pt-[30px] items-center hidden ">
+            <div className="lg:grid grid-cols-12 md:gap-10 pt-4 md:pt-[30px] items-center hidden " data-aos="fade-up" data-aos-delay="200">
               <div className="col-span-12 space-y-2.5">
                 <div className="lg:mr-16">
-                  <p className="text-gray-lite  dark:text-color-910 leading-7">
+                  <p className="text-gray-lite  dark:text-color-910 leading-7" data-aos="fade-up" data-aos-delay="220">
                     {apiData?.about?.description}
 
                   </p>
-                  <p className="text-gray-lite leading-7 mt-2.5 dark:text-color-910">
+                  <p className="text-gray-lite leading-7 mt-2.5 dark:text-color-910" data-aos="fade-up" data-aos-delay="260">
                     {apiData?.about?.short_description}
                   </p>
                 </div>
@@ -41,14 +41,20 @@ const AboutTwo = () => {
           {/* End about descriptions */}
 
           <div className="  pb-12 px-2 sm:px-5 md:px-10 lg:px-14 ">
-            <h3 className="text-[35px] dark:text-white font-medium pb-5">
+            <h3 className="text-[35px] dark:text-white font-medium pb-5" data-aos="fade-right" data-aos-delay="200">
               What I do!
             </h3>
             <div className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-2 ">
               {/* Experience information  */}
 
-              {apiData.what_i_dos?.map((item) => (
-                <AboutCard key={Math.random()} item={item} local={local} />
+              {apiData.what_i_dos?.map((item, index) => (
+                <div
+                  key={item?.id || item?.title || index}
+                  data-aos="fade-up"
+                  data-aos-delay={`${220 + index * 120}`}
+                >
+                  <AboutCard item={item} local={local} />
+                </div>
               ))}
             </div>
           </div>

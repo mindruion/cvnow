@@ -10,6 +10,52 @@ import {
 } from "@react-pdf/renderer";
 import fallbackAvatar from "../../assets/images/about/avatar.jpg";
 
+const PAGE_WIDTH = 595; // A4 width in points
+const PAGE_HEIGHT = 842; // A4 height in points
+
+const hashStringToSeed = (value = "") => {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) % 2147483647;
+  }
+  return hash || 1729;
+};
+
+const createSeededRandom = (seedValue) => {
+  let seed = seedValue % 2147483647;
+  if (seed <= 0) {
+    seed += 2147483646;
+  }
+
+  return () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+};
+
+const generatePointPattern = (count, seedValue, colors) => {
+  const random = createSeededRandom(seedValue);
+  const paletteColors = colors && colors.length ? colors : ["#FFFFFF"];
+  const points = [];
+
+  for (let index = 0; index < count; index += 1) {
+    const size = 3 + random() * 7;
+    const opacity = 0.18 + random() * 0.32;
+    const color = paletteColors[index % paletteColors.length];
+
+    points.push({
+      key: `${index}-${color}`,
+      left: random() * PAGE_WIDTH,
+      top: random() * PAGE_HEIGHT,
+      size,
+      opacity,
+      color,
+    });
+  }
+
+  return points;
+};
+
 const createStyles = (palette = {}) =>
   StyleSheet.create({
     page: {
@@ -19,6 +65,25 @@ const createStyles = (palette = {}) =>
       padding: 0,
       fontFamily: "Helvetica",
       letterSpacing: 0.1,
+      position: "relative",
+      overflow: "hidden",
+    },
+    pageContent: {
+      position: "relative",
+      zIndex: 1,
+      flexDirection: "column",
+      flex: 1,
+    },
+    backgroundOverlay: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      width: "100%",
+      height: "100%",
+    },
+    backgroundPoint: {
+      position: "absolute",
+      borderRadius: 9999,
     },
     // Header Section - Compact and professional
     header: {
@@ -404,13 +469,25 @@ const createStyles = (palette = {}) =>
   });
 
 const RyancvDocument = ({ data, theme }) => {
-  const palette = theme?.palette || {};
+  const themeMode = theme?.mode || "light";
+  const palette = {
+    ...(theme?.palette || {}),
+  };
+
+  if (themeMode === "dark") {
+    palette.background = palette.background || "#050505";
+    palette.text = palette.text || "#F5F5F5";
+  } else {
+    palette.background = palette.surface || palette.background || "#F5F5F5";
+    palette.text = palette.text || "#1F2933";
+  }
+
   const variants = theme?.variants || [];
-  
+
   // Helper function to get variant colors
   const getVariant = (index, fallback) =>
     (variants && variants.length ? variants[index % variants.length] : undefined) || fallback;
-  
+
   // Enhanced palette with variants
   const enhancedPalette = {
     ...palette,
@@ -418,16 +495,50 @@ const RyancvDocument = ({ data, theme }) => {
     variant2: getVariant(1, palette.primary || "#FF4C60"),
     variant3: getVariant(2, "#FFB66D"),
   };
-  
+
   const styles = createStyles(enhancedPalette);
-  
+
+  const pointColors = [
+    enhancedPalette.variant1,
+    enhancedPalette.variant2,
+    enhancedPalette.variant3,
+    enhancedPalette.secondary,
+    enhancedPalette.primary,
+    themeMode === "dark" ? "#2D3748" : "#E2E8F0",
+  ].filter(Boolean);
+
+  const seed = hashStringToSeed(
+    `${theme?.id || "theme"}-${themeMode}-${data?.name || "cv"}`
+  );
+  const pointCount = themeMode === "dark" ? 150 : 120;
+  const pointPattern = generatePointPattern(pointCount, seed, pointColors);
+
   // Extract data with proper fallbacks
-  const experiences = data?.experience || [];
-  const education = data?.education || [];
-  const workingSkills = data?.working_skills || [];
-  const languages = data?.languages || [];
-  const knowledge = data?.knowledge || [];
-  const whatIDo = data?.what_i_do || [];
+  const experiences = Array.isArray(data?.experiences)
+    ? data.experiences
+    : Array.isArray(data?.experience)
+      ? data.experience
+      : [];
+  const education = Array.isArray(data?.educations)
+    ? data.educations
+    : Array.isArray(data?.education)
+      ? data.education
+      : [];
+  const workingSkills = Array.isArray(data?.working_skills)
+    ? data.working_skills
+    : Array.isArray(data?.skills)
+      ? data.skills
+      : [];
+  const languages = Array.isArray(data?.languages) ? data.languages : [];
+  const knowledgeEntries = Array.isArray(data?.knowledge) ? data.knowledge : [];
+  const knowledge = knowledgeEntries
+    .map((item) => (typeof item === "string" ? item : item?.title))
+    .filter(Boolean);
+  const whatIDo = Array.isArray(data?.what_i_dos)
+    ? data.what_i_dos
+    : Array.isArray(data?.what_i_do)
+      ? data.what_i_do
+      : [];
 
   // Helper function to format dates
   const formatDate = (dateString) => {
@@ -436,11 +547,70 @@ const RyancvDocument = ({ data, theme }) => {
     return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
   };
 
+  const formatRange = (item) => {
+    if (item?.date) {
+      return item.date;
+    }
+    const start = formatDate(item?.start_date);
+    const end = item?.current ? "Present" : formatDate(item?.end_date);
+    if (start && end) {
+      return `${start} - ${end}`;
+    }
+    return start || end || "";
+  };
+
+  const resolvePercentage = (value) => {
+    if (typeof value === "number") {
+      return Math.max(0, Math.min(value, 100));
+    }
+    const rawValue =
+      value?.percentage !== undefined
+        ? value.percentage
+        : value?.value !== undefined
+          ? value.value
+          : value?.number;
+
+    let candidate = rawValue;
+    if (typeof candidate === "string") {
+      candidate = Number(candidate.replace(/[^0-9.]/g, ""));
+    }
+
+    if (typeof candidate === "number" && !Number.isNaN(candidate)) {
+      return Math.max(0, Math.min(candidate, 100));
+    }
+
+    const parsed = Number(rawValue || 0);
+    if (Number.isNaN(parsed)) {
+      return 0;
+    }
+    return Math.max(0, Math.min(parsed, 100));
+  };
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header Section */}
-        <View style={styles.header}>
+        <View style={styles.backgroundOverlay}>
+          {pointPattern.map((point) => (
+            <View
+              key={point.key}
+              style={[
+                styles.backgroundPoint,
+                {
+                  left: point.left,
+                  top: point.top,
+                  width: point.size,
+                  height: point.size,
+                  opacity: point.opacity,
+                  backgroundColor: point.color,
+                },
+              ]}
+            />
+          ))}
+        </View>
+
+        <View style={styles.pageContent}>
+          {/* Header Section */}
+          <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.name}>{data?.name || "Your Name"}</Text>
             <Text style={styles.profession}>
@@ -493,62 +663,68 @@ const RyancvDocument = ({ data, theme }) => {
             </View>
 
             {/* Skills Section */}
-            {workingSkills.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionTitle}>
-                  <Text style={styles.sectionIcon}>⚡</Text>
-                  <Text>Technical Skills</Text>
-                </View>
-                {workingSkills.map((skill, index) => (
-                  <View key={index} style={styles.skillItem}>
-                    <View style={styles.skillRow}>
-                      <View style={styles.skillName}>
-                        <Text style={styles.skillIcon}>💻</Text>
-                        <Text>{skill.title}</Text>
-                      </View>
-                      <Text style={styles.skillPercentage}>{skill.percentage}%</Text>
-                    </View>
-                    <View style={styles.progressBar}>
-                      <View 
-                        style={[
-                          styles.progressFill, 
-                          { width: `${skill.percentage}%` }
-                        ]} 
-                      />
-                    </View>
+              {workingSkills.length > 0 && (
+                <View style={styles.section}>
+                  <View style={styles.sectionTitle}>
+                    <Text style={styles.sectionIcon}>⚡</Text>
+                    <Text>Technical Skills</Text>
                   </View>
-                ))}
-              </View>
-            )}
+                  {workingSkills.map((skill, index) => {
+                    const percent = resolvePercentage(skill);
+                    return (
+                      <View key={index} style={styles.skillItem}>
+                        <View style={styles.skillRow}>
+                          <View style={styles.skillName}>
+                            <Text style={styles.skillIcon}>💻</Text>
+                            <Text>{skill.title || skill.name || "Skill"}</Text>
+                          </View>
+                          <Text style={styles.skillPercentage}>{percent}%</Text>
+                        </View>
+                        <View style={styles.progressBar}>
+                          <View
+                            style={[
+                              styles.progressFill,
+                              { width: `${percent}%` },
+                            ]}
+                          />
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
 
             {/* Languages Section */}
-            {languages.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionTitle}>
-                  <Text style={styles.sectionIcon}>🌍</Text>
-                  <Text>Languages</Text>
-                </View>
-                {languages.map((language, index) => (
-                  <View key={index} style={styles.skillItem}>
-                    <View style={styles.skillRow}>
-                      <View style={styles.skillName}>
-                        <Text style={styles.skillIcon}>🗣️</Text>
-                        <Text>{language.title}</Text>
-                      </View>
-                      <Text style={styles.skillPercentage}>{language.percentage}%</Text>
-                    </View>
-                    <View style={styles.progressBar}>
-                      <View 
-                        style={[
-                          styles.progressFill, 
-                          { width: `${language.percentage}%` }
-                        ]} 
-                      />
-                    </View>
+              {languages.length > 0 && (
+                <View style={styles.section}>
+                  <View style={styles.sectionTitle}>
+                    <Text style={styles.sectionIcon}>🌍</Text>
+                    <Text>Languages</Text>
                   </View>
-                ))}
-              </View>
-            )}
+                  {languages.map((language, index) => {
+                    const percent = resolvePercentage(language);
+                    return (
+                      <View key={index} style={styles.skillItem}>
+                        <View style={styles.skillRow}>
+                          <View style={styles.skillName}>
+                            <Text style={styles.skillIcon}>🗣️</Text>
+                            <Text>{language.title || language.name || "Language"}</Text>
+                          </View>
+                          <Text style={styles.skillPercentage}>{percent}%</Text>
+                        </View>
+                        <View style={styles.progressBar}>
+                          <View
+                            style={[
+                              styles.progressFill,
+                              { width: `${percent}%` },
+                            ]}
+                          />
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
 
             {/* Knowledge Section */}
             {knowledge.length > 0 && (
@@ -627,7 +803,8 @@ const RyancvDocument = ({ data, theme }) => {
                       <Text>{item.title || "Service"}</Text>
                     </View>
                     <Text style={styles.whatIDoDescription}>
-                      {item.description || "Description of the service or skill."}
+                      {item.description || item.des ||
+                        "Description of the service or skill."}
                     </Text>
                   </View>
                 ))}
@@ -641,29 +818,36 @@ const RyancvDocument = ({ data, theme }) => {
                   <Text style={styles.sectionIcon}>💼</Text>
                   <Text>Experience</Text>
                 </View>
-                {experiences.map((item, index) => (
-                  <View key={index} style={styles.experienceItem}>
-                    <View style={styles.experienceHeader}>
-                      <View style={styles.experienceTitle}>
-                        <Text style={styles.experienceIcon}>💼</Text>
-                        <Text>{item.role || item.title || "Position"}</Text>
+                {experiences.map((item, index) => {
+                  const duration = formatRange(item);
+                  return (
+                    <View key={index} style={styles.experienceItem}>
+                      <View style={styles.experienceHeader}>
+                        <View style={styles.experienceTitle}>
+                          <Text style={styles.experienceIcon}>💼</Text>
+                          <Text>{item.role || item.title || "Position"}</Text>
+                        </View>
+                        {duration ? (
+                          <View style={styles.experienceDuration}>
+                            <Text>{duration}</Text>
+                            {item?.current && (
+                              <Text style={styles.currentBadge}>Current</Text>
+                            )}
+                          </View>
+                        ) : null}
                       </View>
-                      <View style={styles.experienceDuration}>
-                        {formatDate(item.start_date)} - {item.current ? "Present" : formatDate(item.end_date)}
-                        {item.current && <Text style={styles.currentBadge}>Current</Text>}
+                      <View style={styles.experienceCompany}>
+                        <Text style={styles.companyIcon}>🏢</Text>
+                        <Text>{item.company || item.place || item.location || "Company"}</Text>
                       </View>
+                      {(item.description || item.des) && (
+                        <Text style={styles.experienceDescription}>
+                          {item.description || item.des}
+                        </Text>
+                      )}
                     </View>
-                    <View style={styles.experienceCompany}>
-                      <Text style={styles.companyIcon}>🏢</Text>
-                      <Text>{item.company || item.place || "Company"}</Text>
-                    </View>
-                    {item.description && (
-                      <Text style={styles.experienceDescription}>
-                        {item.description}
-                      </Text>
-                    )}
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             )}
 
@@ -674,34 +858,40 @@ const RyancvDocument = ({ data, theme }) => {
                   <Text style={styles.sectionIcon}>🎓</Text>
                   <Text>Education</Text>
                 </View>
-                {education.map((item, index) => (
-                  <View key={index} style={styles.educationItem}>
-                    <View style={styles.educationHeader}>
-                      <View style={styles.educationTitle}>
-                        <Text style={styles.educationIcon}>🎓</Text>
-                        <Text>{item.degree || item.title || "Degree"}</Text>
+                {education.map((item, index) => {
+                  const duration = formatRange(item);
+                  return (
+                    <View key={index} style={styles.educationItem}>
+                      <View style={styles.educationHeader}>
+                        <View style={styles.educationTitle}>
+                          <Text style={styles.educationIcon}>🎓</Text>
+                          <Text>{item.degree || item.title || "Degree"}</Text>
+                        </View>
+                        {duration ? (
+                          <View style={styles.educationDuration}>
+                            <Text>{duration}</Text>
+                          </View>
+                        ) : null}
                       </View>
-                      <View style={styles.educationDuration}>
-                        {formatDate(item.start_date)} - {item.current ? "Present" : formatDate(item.end_date)}
+                      <View style={styles.educationInstitution}>
+                        <Text style={styles.institutionIcon}>🏫</Text>
+                        <Text>{item.institution || item.place || "Institution"}</Text>
                       </View>
+                      {(item.field_of_study || item.notes || item.description) && (
+                        <View style={styles.educationField}>
+                          <Text style={styles.fieldIcon}>📚</Text>
+                          <Text>{item.field_of_study || item.notes || item.description}</Text>
+                        </View>
+                      )}
                     </View>
-                    <View style={styles.educationInstitution}>
-                      <Text style={styles.institutionIcon}>🏫</Text>
-                      <Text>{item.institution || item.place || "Institution"}</Text>
-                    </View>
-                    {item.field_of_study && (
-                      <View style={styles.educationField}>
-                        <Text style={styles.fieldIcon}>📚</Text>
-                        <Text>{item.field_of_study}</Text>
-                      </View>
-                    )}
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             )}
           </View>
         </View>
-      </Page>
+      </View>
+    </Page>
     </Document>
   );
 };

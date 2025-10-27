@@ -181,6 +181,7 @@ class ApiSignupView(APIView):
         resume.id = None
         resume.is_private = True
         resume.create_token()
+        resume.config = {"theme": {"id": "bostami", "mode": "dark", "modes": {"dark": {"text": "#FFFFFF", "border": "#333333", "primary": "#FA5252", "surface": "#1D1D1D", "emphasis": "#FAFAFA", "secondary": "#DD2476", "textMuted": "#A6A6A6", "background": "#111111", "surfaceMuted": "#212425", "surfaceElevation": "#1D1D1D"}, "light": {"text": "#111111", "border": "#E3E3E3", "primary": "#FA5252", "surface": "#FFFFFF", "emphasis": "#1D1D1D", "secondary": "#DD2476", "textMuted": "#7B7B7B", "background": "#F3F6F6", "surfaceMuted": "#F3F6F6", "surfaceElevation": "#FFFFFF"}}, "gradients": {"primary": {"angle": 135, "stops": ["#FA5252", "#DD2476"]}, "primaryHover": {"angle": 135, "stops": ["#DD2476", "#FA5252"]}}, "animations": {"card": {"animate": {"opacity": 1, "translateY": 0}, "initial": {"opacity": 0, "translateY": 20}, "transition": {"ease": "easeOut", "duration": 0.4}}, "preset": "bostami", "section": {"animate": {"opacity": 1, "translateY": 0}, "initial": {"opacity": 0, "translateY": 40}, "transition": {"ease": "easeOut", "duration": 0.6}}}, "availableThemes": [{"id": "bostami", "label": "Bostami Classic"}, {"id": "ryancv", "label": "RyanCV"}, {"id": "bostami-fusion", "label": "Bostami Fusion"}, {"id": "ryancv-fusion", "label": "RyanCV Fusion"}, {"id": "custom", "label": "Custom Theme"}], "paletteVariants": ["#FFF0F0", "#FFF3FC", "#E9FAFF", "#FFFAE9", "#F4F4FF", "#FFF0F8", "#EEFBFF", "#FCF4FF", "#F2F4FF"], "backgroundOverlay": {"icon": "✦", "size": 18, "color": "secondary", "density": 120, "enabled": True, "opacity": 0.14, "animation": {"speed": 22, "variance": 16}}}, "layout": {"panels": {"contact": {"visible": True}, "portfolio": {"visible": True, "displayFilters": True}}, "sidebarPosition": "left", "showHeaderActions": True, "enableStickySidebar": True, "mobileMenuCollapsed": True, "showSidebarProfileCard": True}, "content": {"hero": {"summary": "Building responsive web applications with a focus on delightful user interfaces.", "greeting": "Hello, I'm", "headline": "Ion Mindru", "subtitle": "Full Stack Developer"}}, "features": {"animations": {"preset": "bostami", "enabled": True}, "cvTemplate": "bostami", "pdfTemplates": [{"id": "bostami", "label": "Bostami Classic"}, {"id": "ryancv", "label": "RyanCV"}, {"id": "custom", "label": "Custom Theme"}], "allowThemeToggle": True, "persistThemeMode": True, "autoApplyConfigTheme": True}}
         resume.save()
         self.populate_resume_default_data(resume)
 
@@ -297,12 +298,12 @@ class ApiSignupView(APIView):
 
     def __create_what_i_dos(self, resume):  # noqa
         for t in [
-            "Awesome at something",
-            "Perfect at something",
-            "Best at something",
-            "Amazing at something",
-            "Brilliant at something",
-            "Again Awesome at something",
+            "Awesome at something cloud",
+            "Perfect at writing",
+            "Best at analytics",
+            "Amazing at strategy",
+            "Brilliant at retouch",
+            "Again Awesome at prototype",
         ]:
             resume.whatido_set.create(
                 title=t,

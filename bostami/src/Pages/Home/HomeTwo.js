@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
 import { FiMoon, FiSun } from "react-icons/fi";
 import { Outlet, useLocation } from "react-router-dom";
@@ -6,6 +6,7 @@ import UseData from "../../Hooks/UseData";
 import HeaderTwo from "../../Share/HeaderTwo";
 import HomeCard from "../../Share/HomeCard";
 import PageTitle from "../../Share/PageTitle";
+import AOS from "aos";
 
 const HomeTwo = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -20,6 +21,10 @@ const HomeTwo = () => {
     enableStickySidebar = true,
     showHeaderActions = true,
   } = layout || {};
+  useEffect(() => {
+    AOS.refresh();
+  }, [a.pathname]);
+
   return (
     <>
       <PageTitle title={apiData?.name ? apiData?.name : "Home"}/>
@@ -27,7 +32,8 @@ const HomeTwo = () => {
       <section className="bg-homeBg dark:bg-homeTwoBg-dark min-h-screen  bg-no-repeat bg-center bg-cover bg-fixed  md:pb-16 w-full">
         <div
           className="container   w-full bg-[#F3F6F6] dark:bg-black lg:bg-transparent lg:dark:bg-transparent flex justify-between lg:px-0 lg:pt-[0px]"
-          data-aos="fade"
+          data-aos="fade-down"
+          data-aos-delay="100"
         >
           <div className="w-full flex justify-between  px-4">
 
@@ -54,7 +60,11 @@ const HomeTwo = () => {
           </div>
         </div>
 
-        <nav className={`${menuOpen ? "block lg:hidden" : "hidden"}`}>
+        <nav
+          className={`${menuOpen ? "block lg:hidden" : "hidden"}`}
+          data-aos="fade-right"
+          data-aos-delay="150"
+        >
           {/* mobile menu items */}
           <ul
             className={`${
@@ -109,6 +119,8 @@ const HomeTwo = () => {
               className={`col-span-12 lg:col-span-4 hidden lg:block ${
                 enableStickySidebar ? "h-screen sticky top-44" : ""
               }`}
+              data-aos="fade-up"
+              data-aos-delay="200"
             >
               <HomeCard />
             </div>
@@ -118,6 +130,8 @@ const HomeTwo = () => {
             className={`col-span-12 ${
               showSidebarProfileCard ? "lg:col-span-8" : "lg:col-span-12"
             }`}
+            data-aos="fade-up"
+            data-aos-delay={showSidebarProfileCard ? "250" : "200"}
           >
             {showHeaderActions && <HeaderTwo />}
             <Outlet />
@@ -128,6 +142,8 @@ const HomeTwo = () => {
               className={`col-span-12 lg:col-span-4 hidden lg:block ${
                 enableStickySidebar ? "h-screen sticky top-44" : ""
               }`}
+              data-aos="fade-up"
+              data-aos-delay="300"
             >
               <HomeCard />
             </div>

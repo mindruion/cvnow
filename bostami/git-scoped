@@ -1,0 +1,11 @@
+#!/bin/bash
+# Wrapper to run git commands scoped to the current directory
+# Usage: ./git-scoped diff, ./git-scoped status, etc.
+
+# Get the directory name (bostami, tovo-node-16, etc.)
+CURRENT_DIR=$(basename "$(pwd)")
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+# Execute git command with path filter
+git "$@" "$CURRENT_DIR"
+

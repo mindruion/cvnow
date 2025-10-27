@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -71,7 +71,6 @@ const SkillsStep = ({
   nextLabel = "Save",
 }) => {
   const [serverError, setServerError] = useState("");
-  const [expandedCards, setExpandedCards] = useState(new Set([0])); // First card expanded by default
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     type: null,
@@ -109,6 +108,18 @@ const SkillsStep = ({
   );
 
   const isResettingRef = useRef(false);
+  const focusSkillInput = useCallback((index) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const desktopInput = document.getElementById(`skill-name-${index}`);
+    const mobileInput = document.getElementById(`skill-name-mobile-${index}`);
+    const target = desktopInput || mobileInput;
+    if (target) {
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
 
   const {
     handleSubmit,
@@ -178,34 +189,16 @@ const SkillsStep = ({
     name: "working_skills",
   });
 
-  // Clean up expanded state when skill items are removed
-  useEffect(() => {
-    setExpandedCards(prev => {
-      const newSet = new Set();
-      prev.forEach(index => {
-        if (index < skillFields.length) {
-          newSet.add(index);
-        }
-      });
-      return newSet;
-    });
-  }, [skillFields.length]);
-
   // Custom add skill function that opens new card in edit mode and collapses others
   const handleAddSkill = () => {
     addSkill(createSkill());
     const newIndex = skillFields.length;
     // Mark this card as new for animation
     setNewCardIds(prev => new Set([...prev, `skill-${newIndex}`]));
-    // Open the new card and collapse all others
-    setExpandedCards(new Set([newIndex]));
-    // Scroll to the new card after a short delay
+    // Scroll to the new card and focus name input after a short delay
     setTimeout(() => {
-      const element = document.getElementById(`skill-card-body-${newIndex}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 100);
+      focusSkillInput(newIndex);
+    }, 120);
     // Remove animation class after animation completes
     setTimeout(() => {
       setNewCardIds(prev => {
@@ -216,105 +209,23 @@ const SkillsStep = ({
     }, 200);
   };
 
-  const onToggle = (i) => {
-    setExpandedCards(prev => {
-      const ns = new Set(prev);
-      if (ns.has(i)) {
-        // Collapsing - remove immediately
-        ns.delete(i);
-      } else {
-        // Expanding - add immediately
-        ns.add(i);
-      }
-      return ns;
-    });
-  };
-
-  const handleHeaderKeyDown = (e, index) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onToggle(index);
-    }
-  };
-
-  // Check if skill fields are valid and switch to summary mode
-  const checkAndSwitchToSummary = (index) => {
-    const skillName = watch(`working_skills.${index}.title`);
-    
-    // If skill name is provided and no errors, switch to summary mode
-    if (skillName && skillName.trim() !== '') {
-      setExpandedCards(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(index);
-        return newSet;
-      });
-    }
-  };
-
-  // Handle blur events for input and slider
-  const handleSkillInputBlur = (index) => {
-    // Small delay to allow validation to complete
-    setTimeout(() => {
-      checkAndSwitchToSummary(index);
-    }, 100);
-  };
-
-  const handleSkillSliderBlur = (index) => {
-    // Small delay to allow validation to complete
-    setTimeout(() => {
-      checkAndSwitchToSummary(index);
-    }, 100);
-  };
-
-  // Check if language fields are valid and switch to summary mode
-  const checkAndSwitchLanguageToSummary = (index) => {
-    const languageName = watch(`languages.${index}.title`);
-    const languageLevel = watch(`languages.${index}.level`);
-    
-    // If language name and level are provided and no errors, switch to summary mode
-    if (languageName && languageName.trim() !== '' && languageLevel) {
-      setExpandedCards(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(index + 200); // Offset for language cards
-        return newSet;
-      });
-    }
-  };
-
-  // Handle blur events for language fields
-  const handleLanguageInputBlur = (index) => {
-    setTimeout(() => {
-      checkAndSwitchLanguageToSummary(index);
-    }, 100);
-  };
-
-  const handleLanguageSelectBlur = (index) => {
-    setTimeout(() => {
-      checkAndSwitchLanguageToSummary(index);
-    }, 100);
-  };
-
-  const handleLanguageSliderBlur = (index) => {
-    setTimeout(() => {
-      checkAndSwitchLanguageToSummary(index);
-    }, 100);
-  };
-
   // Add language function with scroll into view
   const handleAddLanguage = () => {
     addLanguage(createLanguage());
     const newIndex = languageFields.length;
     // Mark this card as new for animation
     setNewCardIds(prev => new Set([...prev, `language-${newIndex}`]));
-    // Open the new card and collapse all others
-    setExpandedCards(new Set([newIndex + 200])); // Offset for language cards
-    // Scroll to the new card after a short delay
+    // Scroll to the new card and focus name input after a short delay
     setTimeout(() => {
-      const element = document.getElementById(`language-card-body-${newIndex}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const card = document.getElementById(`language-card-${newIndex}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    }, 100);
+      const input = document.getElementById(`language-name-${newIndex}`);
+      if (input) {
+        input.focus({ preventScroll: true });
+      }
+    }, 120);
     // Remove animation class after animation completes
     setTimeout(() => {
       setNewCardIds(prev => {
@@ -335,13 +246,9 @@ const SkillsStep = ({
     const newIndex = skillFields.length;
     // Mark this card as duplicated for animation
     setNewCardIds(prev => new Set([...prev, `skill-${newIndex}`]));
-    setExpandedCards(new Set([newIndex]));
     setTimeout(() => {
-      const element = document.getElementById(`skill-card-body-${newIndex}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 100);
+      focusSkillInput(newIndex);
+    }, 120);
     // Remove animation class after animation completes
     setTimeout(() => {
       setNewCardIds(prev => {
@@ -362,13 +269,16 @@ const SkillsStep = ({
     const newIndex = languageFields.length;
     // Mark this card as duplicated for animation
     setNewCardIds(prev => new Set([...prev, `language-${newIndex}`]));
-    setExpandedCards(new Set([newIndex + 200]));
     setTimeout(() => {
-      const element = document.getElementById(`language-card-body-${newIndex}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const card = document.getElementById(`language-card-${newIndex}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    }, 100);
+      const input = document.getElementById(`language-name-${newIndex}`);
+      if (input) {
+        input.focus({ preventScroll: true });
+      }
+    }, 120);
     // Remove animation class after animation completes
     setTimeout(() => {
       setNewCardIds(prev => {
@@ -510,14 +420,6 @@ const SkillsStep = ({
         handleAddSkill();
         // Focus will be handled by the new card's auto-focus
       }
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Collapse to summary without losing values
-      const newExpandedCards = new Set(expandedCards);
-      newExpandedCards.delete(index);
-      setExpandedCards(newExpandedCards);
     }
   };
 
@@ -535,14 +437,6 @@ const SkillsStep = ({
         handleAddLanguage();
         // Focus will be handled by the new card's auto-focus
       }
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Collapse to summary without losing values
-      const newExpandedCards = new Set(expandedCards);
-      newExpandedCards.delete(index + 200); // Offset for language cards
-      setExpandedCards(newExpandedCards);
     }
   };
 
@@ -704,83 +598,75 @@ const SkillsStep = ({
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="skills">
           {(provided) => (
-            <div {...provided.droppableProps} ref={provided.innerRef}>
+            <div
+              className="skills-top"
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+            >
               {skillFields.map((field, index) => {
-        const skillName = watch(`working_skills.${index}.title`);
+        const skillCardId = `skill-card-${index}`;
         const percentageValue = normalizePercentage(
           watch(`working_skills.${index}.percentage`),
           SKILL_DEFAULT_PERCENT
         );
-        const isExpanded = expandedCards.has(index);
-        const bodyId = `skill-card-body-${index}`;
 
         return (
-          <Draggable key={field.id} draggableId={field.id} index={index}>
+          <Draggable key={field.id} draggableId={field.id} index={index} isDragDisabled>
             {(provided, snapshot) => (
               <div 
-                className={`exp-card card inner-card mb-4 ${snapshot.isDragging ? 'dragging' : ''} ${newCardIds.has(`skill-${index}`) ? 'new-card' : ''}`}
+                id={skillCardId}
+                className={`skill-item exp-card card inner-card mb-4 ${snapshot.isDragging ? 'dragging' : ''} ${newCardIds.has(`skill-${index}`) ? 'new-card' : ''}`}
                 ref={provided.innerRef}
                 {...provided.draggableProps}
+                {...provided.dragHandleProps}
               >
-            <div 
-              className="exp-card__head skill-card-header"
-              onClick={() => onToggle(index)}
-              onKeyDown={(e) => handleHeaderKeyDown(e, index)}
-              role="button"
-              tabIndex={0}
-              aria-expanded={isExpanded}
-              aria-controls={bodyId}
-              aria-label={`${isExpanded ? 'Collapse' : 'Expand'} skill: ${skillName || "Skill"}`}
-            >
-              {isExpanded ? (
-                // Editing state - inline form in header
-                <div className="skill-header-form">
-                  <div className="skill-header-form__desktop">
-                    <div className="skill-input-group">
-                      <input
-                        id={`skill-name-${index}`}
-                        type="text"
-                        className={`skill-input ${errors.working_skills?.[index]?.title ? "is-invalid" : ""}`}
-                        placeholder="e.g., React"
-                        aria-invalid={errors.working_skills?.[index]?.title ? "true" : "false"}
-                        aria-describedby={errors.working_skills?.[index]?.title ? `skill-error-${index}` : undefined}
-                        {...register(`working_skills.${index}.title`)}
-                        onClick={(e) => e.stopPropagation()}
-                        onBlur={() => handleSkillInputBlur(index)}
-                        onKeyDown={(e) => handleSkillKeyDown(e, index)}
-                      />
-                      {errors.working_skills?.[index]?.title && (
-                        <div className="skill-error" id={`skill-error-${index}`}>
-                          {errors.working_skills[index].title.message}
-                        </div>
-                      )}
-                    </div>
-                    <div className="skill-slider-group">
-                      <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={percentageValue}
-                        className="skill-range"
-                        style={{
-                          background: `linear-gradient(90deg, var(--resume-primary) ${percentageValue}%, rgba(3, 33, 54, 0.15) ${percentageValue}%)`,
-                        }}
-                        onChange={(event) => {
-                          updatePercentage(
-                            `working_skills.${index}.percentage`,
-                            SKILL_DEFAULT_PERCENT,
-                            event.target.value
-                          );
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        onBlur={() => handleSkillSliderBlur(index)}
-                      />
-                      <span className="skill-percentage">{percentageValue}%</span>
-                    </div>
+            <div className="exp-card__head skill-card-header">
+              <div className="skill-header-form">
+                <div className="skill-header-form__desktop">
+                  <div className="skill-input-group">
+                    <input
+                      id={`skill-name-${index}`}
+                      type="text"
+                      className={`skill-input ${errors.working_skills?.[index]?.title ? "is-invalid" : ""}`}
+                      placeholder="e.g., React"
+                      aria-invalid={errors.working_skills?.[index]?.title ? "true" : "false"}
+                      aria-describedby={errors.working_skills?.[index]?.title ? `skill-error-${index}` : undefined}
+                      {...register(`working_skills.${index}.title`)}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => handleSkillKeyDown(e, index)}
+                    />
+                    {errors.working_skills?.[index]?.title && (
+                      <div className="skill-error" id={`skill-error-${index}`}>
+                        {errors.working_skills[index].title.message}
+                      </div>
+                    )}
                   </div>
-                  <div className="skill-header-form__mobile">
-                    <div className="skill-input-group">
+                  <div className="skill-slider-group">
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={percentageValue}
+                      className="skill-range"
+                      style={{
+                        background: `linear-gradient(90deg, var(--resume-primary) ${percentageValue}%, rgba(3, 33, 54, 0.15) ${percentageValue}%)`,
+                      }}
+                      onChange={(event) => {
+                        updatePercentage(
+                          `working_skills.${index}.percentage`,
+                          SKILL_DEFAULT_PERCENT,
+                          event.target.value
+                        );
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <span className="skill-percentage">{percentageValue}%</span>
+                  </div>
+                </div>
+                <div className="skill-header-form__mobile">
+                  <div className="skill-item__row skill-item__row--header">
+                    <div className="skill-item__name">
                       <input
                         id={`skill-name-mobile-${index}`}
                         type="text"
@@ -790,7 +676,6 @@ const SkillsStep = ({
                         aria-describedby={errors.working_skills?.[index]?.title ? `skill-error-mobile-${index}` : undefined}
                         {...register(`working_skills.${index}.title`)}
                         onClick={(e) => e.stopPropagation()}
-                        onBlur={() => handleSkillInputBlur(index)}
                         onKeyDown={(e) => handleSkillKeyDown(e, index)}
                       />
                       {errors.working_skills?.[index]?.title && (
@@ -799,55 +684,53 @@ const SkillsStep = ({
                         </div>
                       )}
                     </div>
-                    <div className="skill-slider-group">
-                      <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={percentageValue}
-                        className="skill-range"
-                        style={{
-                          background: `linear-gradient(90deg, var(--resume-primary) ${percentageValue}%, rgba(3, 33, 54, 0.15) ${percentageValue}%)`,
-                        }}
-                        onChange={(event) => {
-                          updatePercentage(
-                            `working_skills.${index}.percentage`,
-                            SKILL_DEFAULT_PERCENT,
-                            event.target.value
-                          );
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        onBlur={() => handleSkillSliderBlur(index)}
-                      />
-                      <span className="skill-percentage">{percentageValue}%</span>
+                    <div
+                      className="skill-item__percent skill-percentage"
+                      aria-live="polite"
+                    >
+                      {percentageValue}%
                     </div>
                   </div>
+                  <div className="skill-item__preview">
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={percentageValue}
+                      className="skill-range skill-item__range"
+                      style={{
+                        background: `linear-gradient(90deg, var(--resume-primary) ${percentageValue}%, rgba(3, 33, 54, 0.15) ${percentageValue}%)`,
+                      }}
+                      onChange={(event) => {
+                        updatePercentage(
+                          `working_skills.${index}.percentage`,
+                          SKILL_DEFAULT_PERCENT,
+                          event.target.value
+                        );
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
                 </div>
-              ) : (
-                // Collapsed state - summary display
-                <div className="exp-card__title">
-                  <span className="skill-summary">
-                    {skillName ? `${skillName} — ${percentageValue}%` : "Skill — Proficiency"}
-                  </span>
-                </div>
-              )}
-              
-              <div className="exp-card__actions d-flex align-items-center gap-2">
-                <div 
-                  className="exp-card__drag-handle"
-                  {...provided.dragHandleProps}
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="Drag to reorder"
-                >
-                  <i className="fa fa-grip-vertical" aria-hidden="true"></i>
-                </div>
-                <div className="exp-card__toggle-icon" aria-label={isExpanded ? "Collapse details" : "Expand details"}>
-                  <i className={`fa fa-chevron-${isExpanded ? 'up' : 'down'}`} aria-hidden="true"></i>
-                </div>
+              </div>
+              <div className="exp-card__actions skill-item__actions d-flex align-items-center gap-2">
                 <button
                   type="button"
-                  className="icon-btn duplicate-entry"
+                  className="icon-btn btn-skill-edit"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    focusSkillInput(index);
+                  }}
+                  disabled={submitting}
+                  aria-label="Edit skill"
+                  data-tooltip="Edit skill"
+                >
+                  <i className="fa fa-pencil" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn duplicate-entry skill-item__duplicate"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDuplicateSkill(index);
@@ -860,7 +743,7 @@ const SkillsStep = ({
                 </button>
                 <button
                   type="button"
-                  className="icon-btn delete-exp"
+                  className="icon-btn delete-exp btn-skill-delete"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteSkill(index);
@@ -871,23 +754,6 @@ const SkillsStep = ({
                 >
                   <i className="fa fa-trash" aria-hidden="true"></i>
                 </button>
-              </div>
-            </div>
-            <div 
-              id={bodyId}
-              className="exp-card__body"
-              aria-hidden={!isExpanded}
-              ref={(el) => {
-                if (!el) return;
-                const inner = el.firstChild;
-                if (!inner) return;
-                // animate height
-                const target = isExpanded ? inner.scrollHeight : 0;
-                el.style.height = target + 'px';
-              }}
-            >
-              <div className="exp-card__body-inner">
-                {/* Empty body - all editing happens in header */}
               </div>
             </div>
               </div>
@@ -984,138 +850,58 @@ const SkillsStep = ({
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="languages">
           {(provided) => (
-            <div {...provided.droppableProps} ref={provided.innerRef}>
+            <div
+              className="languages-top"
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+            >
               {languageFields.map((field, index) => {
-        const languageName = watch(`languages.${index}.title`);
-        const languageLevel = watch(`languages.${index}.level`);
+        const languageCardId = `language-card-${index}`;
         const percentageValue = normalizePercentage(
           watch(`languages.${index}.percentage`),
           LANGUAGE_DEFAULT_PERCENT
         );
-        const isExpanded = expandedCards.has(index + 200); // Offset to avoid conflicts with skills and knowledge
-        const bodyId = `language-card-body-${index}`;
 
         return (
-          <Draggable key={field.id} draggableId={field.id} index={index}>
+          <Draggable key={field.id} draggableId={field.id} index={index} isDragDisabled>
             {(provided, snapshot) => (
               <div 
-                className={`exp-card card inner-card mb-4 ${snapshot.isDragging ? 'dragging' : ''} ${newCardIds.has(`language-${index}`) ? 'new-card' : ''}`}
+                id={languageCardId}
+                className={`language-item exp-card card inner-card mb-4 ${snapshot.isDragging ? 'dragging' : ''} ${newCardIds.has(`language-${index}`) ? 'new-card' : ''}`}
                 ref={provided.innerRef}
                 {...provided.draggableProps}
+                {...provided.dragHandleProps}
               >
-            <div 
-              className="exp-card__head language-card-header"
-              onClick={() => onToggle(index + 200)}
-              onKeyDown={(e) => handleHeaderKeyDown(e, index + 200)}
-              role="button"
-              tabIndex={0}
-              aria-expanded={isExpanded}
-              aria-controls={bodyId}
-              aria-label={`${isExpanded ? 'Collapse' : 'Expand'} language: ${languageName || "Language"}`}
-            >
-              {isExpanded ? (
-                // Editing state - inline form in header
-                <div className="language-header-form">
-                  <div className="language-header-form__desktop">
-                    <div className="language-input-group">
-                      <input
-                        id={`language-name-${index}`}
-                        type="text"
-                        className={`language-input ${errors.languages?.[index]?.title ? "is-invalid" : ""}`}
-                        placeholder="e.g., English"
-                        aria-invalid={errors.languages?.[index]?.title ? "true" : "false"}
-                        aria-describedby={errors.languages?.[index]?.title ? `language-error-${index}` : undefined}
-                        {...register(`languages.${index}.title`)}
-                        onClick={(e) => e.stopPropagation()}
-                        onBlur={() => handleLanguageInputBlur(index)}
-                        onKeyDown={(e) => handleLanguageKeyDown(e, index)}
-                      />
-                      {errors.languages?.[index]?.title && (
-                        <div className="language-error" id={`language-error-${index}`}>
-                          {errors.languages[index].title.message}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="language-select-group">
-                      <select
-                        id={`language-level-${index}`}
-                        className={`language-select ${errors.languages?.[index]?.level ? "is-invalid" : ""}`}
-                        aria-invalid={errors.languages?.[index]?.level ? "true" : "false"}
-                        aria-describedby={errors.languages?.[index]?.level ? `language-level-error-${index}` : undefined}
-                        {...register(`languages.${index}.level`)}
-                        onClick={(e) => e.stopPropagation()}
-                        onBlur={() => handleLanguageSelectBlur(index)}
-                      >
-                        {LANGUAGE_LEVELS.map((level) => (
-                          <option key={level} value={level}>
-                            {level}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.languages?.[index]?.level && (
-                        <div className="language-error" id={`language-level-error-${index}`}>
-                          {errors.languages[index].level.message}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="language-slider-group">
-                      <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={percentageValue}
-                        className="language-range"
-                        style={{
-                          background: `linear-gradient(90deg, var(--resume-primary) ${percentageValue}%, rgba(3, 33, 54, 0.15) ${percentageValue}%)`,
-                        }}
-                        onChange={(event) => {
-                          updatePercentage(
-                            `languages.${index}.percentage`,
-                            LANGUAGE_DEFAULT_PERCENT,
-                            event.target.value
-                          );
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        onBlur={() => handleLanguageSliderBlur(index)}
-                      />
-                      <span className="language-percentage">{percentageValue}%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="language-header-form__mobile">
-                    <div className="language-input-group">
-                      <input
-                        id={`language-name-mobile-${index}`}
-                        type="text"
-                        className={`language-input ${errors.languages?.[index]?.title ? "is-invalid" : ""}`}
-                        placeholder="e.g., English"
-                        aria-invalid={errors.languages?.[index]?.title ? "true" : "false"}
-                        aria-describedby={errors.languages?.[index]?.title ? `language-error-mobile-${index}` : undefined}
-                        {...register(`languages.${index}.title`)}
-                        onClick={(e) => e.stopPropagation()}
-                        onBlur={() => handleLanguageInputBlur(index)}
-                        onKeyDown={(e) => handleLanguageKeyDown(e, index)}
-                      />
-                      {errors.languages?.[index]?.title && (
-                        <div className="language-error" id={`language-error-mobile-${index}`}>
-                          {errors.languages[index].title.message}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="language-controls-row">
+                <div className="exp-card__head language-card-header">
+                  <div className="language-header-form">
+                    <div className="language-header-form__desktop">
+                      <div className="language-input-group">
+                        <input
+                          id={`language-name-${index}`}
+                          type="text"
+                          className={`language-input ${errors.languages?.[index]?.title ? "is-invalid" : ""}`}
+                          placeholder="e.g., English"
+                          aria-invalid={errors.languages?.[index]?.title ? "true" : "false"}
+                          aria-describedby={errors.languages?.[index]?.title ? `language-error-${index}` : undefined}
+                          {...register(`languages.${index}.title`)}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => handleLanguageKeyDown(e, index)}
+                        />
+                        {errors.languages?.[index]?.title && (
+                          <div className="language-error" id={`language-error-${index}`}>
+                            {errors.languages[index].title.message}
+                          </div>
+                        )}
+                      </div>
+                      
                       <div className="language-select-group">
                         <select
-                          id={`language-level-mobile-${index}`}
+                          id={`language-level-${index}`}
                           className={`language-select ${errors.languages?.[index]?.level ? "is-invalid" : ""}`}
                           aria-invalid={errors.languages?.[index]?.level ? "true" : "false"}
-                          aria-describedby={errors.languages?.[index]?.level ? `language-level-error-mobile-${index}` : undefined}
+                          aria-describedby={errors.languages?.[index]?.level ? `language-level-error-${index}` : undefined}
                           {...register(`languages.${index}.level`)}
                           onClick={(e) => e.stopPropagation()}
-                          onBlur={() => handleLanguageSelectBlur(index)}
                         >
                           {LANGUAGE_LEVELS.map((level) => (
                             <option key={level} value={level}>
@@ -1124,7 +910,7 @@ const SkillsStep = ({
                           ))}
                         </select>
                         {errors.languages?.[index]?.level && (
-                          <div className="language-error" id={`language-level-error-mobile-${index}`}>
+                          <div className="language-error" id={`language-level-error-${index}`}>
                             {errors.languages[index].level.message}
                           </div>
                         )}
@@ -1149,79 +935,115 @@ const SkillsStep = ({
                             );
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          onBlur={() => handleLanguageSliderBlur(index)}
                         />
                         <span className="language-percentage">{percentageValue}%</span>
                       </div>
                     </div>
+                    
+                    <div className="language-header-form__mobile">
+                      <div className="language-item__row language-item__row--header">
+                        <div className="language-item__name">
+                          <input
+                            id={`language-name-mobile-${index}`}
+                            type="text"
+                            className={`language-input ${errors.languages?.[index]?.title ? "is-invalid" : ""}`}
+                            placeholder="e.g., English"
+                            aria-invalid={errors.languages?.[index]?.title ? "true" : "false"}
+                            aria-describedby={errors.languages?.[index]?.title ? `language-error-mobile-${index}` : undefined}
+                            {...register(`languages.${index}.title`)}
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => handleLanguageKeyDown(e, index)}
+                          />
+                          {errors.languages?.[index]?.title && (
+                            <div className="language-error" id={`language-error-mobile-${index}`}>
+                              {errors.languages[index].title.message}
+                            </div>
+                          )}
+                        </div>
+                        <div
+                          className="language-item__percent language-percentage"
+                          aria-live="polite"
+                        >
+                          {percentageValue}%
+                        </div>
+                      </div>
+                      
+                      <div className="language-controls-row">
+                        <div className="language-select-group">
+                          <select
+                            id={`language-level-mobile-${index}`}
+                            className={`language-select ${errors.languages?.[index]?.level ? "is-invalid" : ""}`}
+                            aria-invalid={errors.languages?.[index]?.level ? "true" : "false"}
+                            aria-describedby={errors.languages?.[index]?.level ? `language-level-error-mobile-${index}` : undefined}
+                            {...register(`languages.${index}.level`)}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {LANGUAGE_LEVELS.map((level) => (
+                              <option key={level} value={level}>
+                                {level}
+                              </option>
+                            ))}
+                          </select>
+                          {errors.languages?.[index]?.level && (
+                            <div className="language-error" id={`language-level-error-mobile-${index}`}>
+                              {errors.languages[index].level.message}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="language-slider-group">
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={percentageValue}
+                            className="language-range language-item__range"
+                            style={{
+                              background: `linear-gradient(90deg, var(--resume-primary) ${percentageValue}%, rgba(3, 33, 54, 0.15) ${percentageValue}%)`,
+                            }}
+                            onChange={(event) => {
+                              updatePercentage(
+                                `languages.${index}.percentage`,
+                                LANGUAGE_DEFAULT_PERCENT,
+                                event.target.value
+                              );
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="exp-card__actions language-item__actions d-flex align-items-center gap-2">
+                    <button
+                      type="button"
+                      className="icon-btn duplicate-entry language-item__duplicate"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDuplicateLanguage(index);
+                      }}
+                      disabled={submitting}
+                      aria-label="Duplicate language"
+                      data-tooltip="Duplicate language"
+                    >
+                      <i className="fa fa-copy" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn delete-exp btn-language-delete"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteLanguage(index);
+                      }}
+                      disabled={submitting}
+                      aria-label="Remove language"
+                      data-tooltip="Remove language"
+                    >
+                      <i className="fa fa-trash" aria-hidden="true"></i>
+                    </button>
                   </div>
                 </div>
-              ) : (
-                // Collapsed state - summary display
-                <div className="exp-card__title">
-                  <span className="language-summary">
-                    {languageName && languageLevel ? `${languageName} — ${languageLevel} • ${percentageValue}%` : "Language — Level • Proficiency"}
-                  </span>
-                </div>
-              )}
-              
-              <div className="exp-card__actions d-flex align-items-center gap-2">
-                <div 
-                  className="exp-card__drag-handle"
-                  {...provided.dragHandleProps}
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="Drag to reorder"
-                >
-                  <i className="fa fa-grip-vertical" aria-hidden="true"></i>
-                </div>
-                <div className="exp-card__toggle-icon" aria-label={isExpanded ? "Collapse details" : "Expand details"}>
-                  <i className={`fa fa-chevron-${isExpanded ? 'up' : 'down'}`} aria-hidden="true"></i>
-                </div>
-                <button
-                  type="button"
-                  className="icon-btn duplicate-entry"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDuplicateLanguage(index);
-                  }}
-                  disabled={submitting}
-                  aria-label="Duplicate language"
-                  data-tooltip="Duplicate language"
-                >
-                  <i className="fa fa-copy" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  className="icon-btn delete-exp"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteLanguage(index);
-                  }}
-                  disabled={submitting}
-                  aria-label="Remove language"
-                  data-tooltip="Remove language"
-                >
-                  <i className="fa fa-trash" aria-hidden="true"></i>
-                </button>
-              </div>
-            </div>
-            <div 
-              id={bodyId}
-              className="exp-card__body"
-              aria-hidden={!isExpanded}
-              ref={(el) => {
-                if (!el) return;
-                const inner = el.firstChild;
-                if (!inner) return;
-                // animate height
-                const target = isExpanded ? inner.scrollHeight : 0;
-                el.style.height = target + 'px';
-              }}
-            >
-              <div className="exp-card__body-inner">
-                {/* Empty body - all editing happens in header */}
-              </div>
-            </div>
               </div>
             )}
           </Draggable>
@@ -1253,8 +1075,7 @@ const SkillsStep = ({
               </>
             ) : (
               <>
-                <i className="fa fa-save me-2" aria-hidden="true"></i>
-                Save Changes
+                Save
               </>
             )}
           </button>

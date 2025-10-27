@@ -25,7 +25,10 @@ const HomeCard = () => {
     return (
         <div>
             <div
-                className="w-full mb-6 lg:mb-0  mx-auto   relative bg-white text-center dark:bg-[#111111] px-6 rounded-[20px] mt-[180px] md:mt-[220px] lg:mt-0 ">
+                className="w-full mb-6 lg:mb-0  mx-auto   relative bg-white text-center dark:bg-[#111111] px-6 rounded-[20px] mt-[180px] md:mt-[220px] lg:mt-0 "
+                data-aos="fade-up"
+                data-aos-delay="100"
+            >
                 {apiData?.avatar === undefined ? <div
                     className="w-[240px]  absolute left-[50%] transform -translate-x-[50%] h-[240px] drop-shadow-xl mx-auto  rounded-[20px] -mt-[144px]"
                     id={"skeletonID"}
@@ -52,7 +55,7 @@ const HomeCard = () => {
 
                     {/* Social Links */}
 
-                    <div className="flex justify-center space-x-3">
+                    <div className="flex justify-center space-x-3" data-aos="zoom-in" data-aos-delay="180">
                         {/* facebook link add here */}
                         <a
                             href={apiData?.facebook}
@@ -77,8 +80,8 @@ const HomeCard = () => {
                     </div>
 
                     {/* personal information */}
-                    <div className="p-7 rounded-2xl mt-7  bg-[#F3F6F6] dark:bg-[#1D1D1D]">
-                        <div className="flex border-b border-[#E3E3E3] dark:border-[#3D3A3A] pb-2.5">
+                    <div className="p-7 rounded-2xl mt-7  bg-[#F3F6F6] dark:bg-[#1D1D1D]" data-aos="fade-up" data-aos-delay="220">
+                        <div className="flex border-b border-[#E3E3E3] dark:border-[#3D3A3A] pb-2.5" data-aos="fade-up" data-aos-delay="240">
               <span className="socialbtn bg-white dark:bg-black text-[#E93B81] shadow-md">
                 <FaMobileAlt/>
               </span>
@@ -89,7 +92,7 @@ const HomeCard = () => {
                                 <p className="dark:text-white">{apiData?.phone}</p>
                             </div>
                         </div>
-                        <div className="flex border-b border-[#E3E3E3] dark:border-[#3D3A3A] py-2.5">
+                        <div className="flex border-b border-[#E3E3E3] dark:border-[#3D3A3A] py-2.5" data-aos="fade-up" data-aos-delay="260">
               <span className="socialbtn bg-white dark:bg-black text-[#6AB5B9] shadow-md">
                 <FaEnvelopeOpenText/>
               </span>
@@ -100,7 +103,7 @@ const HomeCard = () => {
                                 <p className="dark:text-white">{apiData?.email}</p>
                             </div>
                         </div>
-                        <div className="flex border-b border-[#E3E3E3] dark:border-[#3D3A3A] py-2.5">
+                        <div className="flex border-b border-[#E3E3E3] dark:border-[#3D3A3A] py-2.5" data-aos="fade-up" data-aos-delay="280">
               <span className="socialbtn bg-white dark:bg-black text-[#FD7590] shadow-md">
                 <FaMapMarkerAlt/>
               </span>
@@ -111,7 +114,7 @@ const HomeCard = () => {
                                 <p className="dark:text-white">{apiData?.location}</p>
                             </div>
                         </div>
-                        <div className="flex  py-2.5">
+                        <div className="flex  py-2.5" data-aos="fade-up" data-aos-delay="300">
               <span className="socialbtn bg-white dark:bg-black text-[#C17CEB] shadow-md">
                 <FaCalendarAlt/>
               </span>
@@ -124,7 +127,10 @@ const HomeCard = () => {
                         </div>
                     </div>
                     <button
-                        className="flex items-center mx-auto gradient-theme gradient-theme-hover duration-200 transition ease-linear px-8 py-3 text-lg text-white rounded-[35px] mt-6">
+                        className="flex items-center mx-auto gradient-theme gradient-theme-hover duration-200 transition ease-linear px-8 py-3 text-lg text-white rounded-[35px] mt-6"
+                        data-aos="zoom-in"
+                        data-aos-delay="340"
+                    >
                         <img src={downloadIcon} alt="icon" className="mr-2"/>
                         <PDFDownloadLink document={<DocumentTemplate data={apiData} theme={theme}/>} fileName={apiData.name + ' - ' + apiData.profession + ".pdf"}>
                             {({blob, url, loading, error}) =>

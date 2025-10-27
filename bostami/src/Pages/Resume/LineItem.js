@@ -2,10 +2,10 @@ import { Line } from 'rc-progress';
 import React from 'react';
 import UseData from '../../Hooks/UseData';
 
-const LineItem = ({item}) => {
+const LineItem = ({item, animationDelay}) => {
   const {local} = UseData()
     return (
-        <div className=" mb-7">
+        <div className=" mb-7" data-aos="fade-up" data-aos-delay={animationDelay ?? 0}>
         <div className="flex justify-between py-1">
           <span className=" text-base text-gray-lite font-semibold dark:text-[#A6A6A6]">
             {item?.title}

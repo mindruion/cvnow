@@ -738,8 +738,7 @@ const ExperienceStep = ({
               </>
             ) : (
               <>
-                <i className="fa fa-save me-2" aria-hidden="true"></i>
-                Save Changes
+                Save
               </>
             )}
           </button>
