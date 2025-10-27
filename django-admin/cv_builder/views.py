@@ -2,18 +2,26 @@ import datetime
 import traceback
 
 import CloudFlare
+import requests
+import os
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.contrib.auth import login
 from django.contrib.auth.models import Group
+from django.db import transaction
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
+from accounts.emails import send_verification_email
 from cv_builder.models import User, Resume, About
-from cv_builder.serializers import ResumeSerializer, ContactSerializer, SignupSerializer, LoginSerializer
+from cv_builder.serializers import ResumeSerializer, ContactSerializer, SignupSerializer, LoginSerializer, \
+    ResumeDeepWriteSerializerV2
+from cv_builder.utils import create_published_app_route
 
 
 @api_view()
@@ -38,6 +46,28 @@ def get_site_data(request, subdomain):
 
     return Response(ResumeSerializer(resume).data)
 
+@api_view()
+def get_site_data_config(request, subdomain):
+    token = request.GET.get("token")
+    resume_qs = Resume.objects.filter(
+        user__subdomain_name=subdomain,
+        is_private=True if token else False,
+        is_active=True
+    ).select_related('user', 'about')
+    resume = resume_qs.first()
+    if not resume:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if token and resume.private_token != token:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if token and resume.is_token_expired():
+        resume.create_token()
+        resume.save()
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    return Response(resume.config)
+
 
 @api_view(["POST"])
 def create_comment(request, subdomain):
@@ -57,19 +87,21 @@ class ApiLoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = User.objects.filter(username=serializer.validated_data['username']).first()
+        user = User.objects.filter(username=serializer.validated_data['email']).first()
 
         if not user or not user.check_password(serializer.validated_data["password"]):
             raise ValidationError({"details": "Invalid credential"})
 
-        login(request, user)
-        return Response({
-            "session_key": request.session.session_key,
-            "redirect_url": request.build_absolute_uri(
-                reverse("admin:cv_builder_resume_changelist")
-            )
-        }, status=status.HTTP_200_OK)
+        refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
 
+        return Response(
+            {
+                "access": str(access),
+                "refresh": str(refresh),
+            },
+            status=status.HTTP_201_CREATED
+        )
 
 class ApiSignupView(APIView):
     def __create_subdomain(self, validated_data, separator='_'):  # noqa
@@ -91,40 +123,44 @@ class ApiSignupView(APIView):
         return subdomain_name
 
     def post(self, request):
-        zone_id = settings.CLOUDFLARE_ZONE_ID
-        email = settings.CLOUDFLARE_EMAIL
-        token = settings.CLOUDFLARE_TOKEN
-        domain = settings.CLOUDFLARE_DOMAIN
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        if User.objects.filter(username=serializer.validated_data['username']).exists():
+        username = serializer.validated_data["email"]
+        serializer.validated_data["username"] = username
+
+        if User.objects.filter(username=username).exists():
             raise ValidationError({"details": "This email is already used by someone"})
 
         subdomain_name = self._create_subdomain(serializer)
-        cf = CloudFlare.CloudFlare(email=email, token=token)
-        try:
-            cf.zones.dns_records.post(zone_id, data=dict(  # noqa
-                name=f'{subdomain_name}.{domain}',
-                type='A',
-                content='164.92.200.190',
-                proxied=True
-            ))
-        except Exception as e:  # noqa
-            print(traceback.format_exc())
-            raise ValidationError({"details": "Something bad happened"})
 
-        user = User.objects.create_user(subdomain_name=subdomain_name, is_staff=True, **serializer.validated_data)
-        resume = self.create_public_resume(user)
-        public_resume_id = resume.id
-        self.create_private_resume(resume)
-        login(request, user)
-        return Response({
-            "session_key": request.session.session_key,
-            "redirect_url": request.build_absolute_uri(
-                reverse("admin:cv_builder_resume_change", args=[public_resume_id])
+        try:
+            # Use a single atomic block just for DB writes
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    subdomain_name=subdomain_name,
+                    is_staff=True,
+                    is_active=False,
+                    **serializer.validated_data
+                )
+
+                resume = self.create_public_resume(user)
+                self.create_private_resume(resume)
+
+            # Do non-DB side effects outside of the DB transaction
+            create_published_app_route(subdomain_name)
+            send_verification_email(request, user)
+
+        except Exception as e:
+            traceback.print_exc()
+            # Let Django manage transaction rollback automatically
+            raise ValidationError(
+                {"details": f"Signup failed: {str(e)}"}
             )
-        }, status=status.HTTP_200_OK)
+
+        return Response({"detail": "Registration successful. Check your email to confirm your account."},
+                        status=201)
+
 
     def create_public_resume(self, user):
         resume = Resume.objects.create(
@@ -137,7 +173,7 @@ class ApiSignupView(APIView):
             facebook="https://www.facebook.com/",
             linkedin="https://www.linkedin.com/",
         )
-        user.groups.set([Group.objects.get(name="Cv Builder")])
+        # user.groups.set([Group.objects.get(name="Cv Builder")])
         self.populate_resume_default_data(resume)
         return resume
 
@@ -161,22 +197,31 @@ class ApiSignupView(APIView):
     def __create_languages(self, resume):
         resume.language_set.create(
             title="English",
-            color="#CA56F2",
             percentage=100
         )
 
     def __create_blogs(self, resume):  # noqa
-        resume.blog_set.create(
-            category="Perfect",
-            description="""I'm Awesome at something from best place ever, place is here, working in best place and some other super places. I enjoy turning complex problems into simple, beautiful and amazing work.""",
-            title="How to be Perfect",
+        description = (
+            """I'm Awesome at something from best place ever, place is here, working in best place and some other super places. """
+            """I enjoy turning complex problems into simple, beautiful and amazing work."""
         )
 
-        resume.blog_set.create(
-            category="Awesome",
-            description="""I'm Awesome at something from best place ever, place is here, working in best place and some other super places. I enjoy turning complex problems into simple, beautiful and amazing work.""",
-            title="How to be Awesome",
-        )
+        def _create_one(filename, category, title):
+            try:
+                path = os.path.join(settings.BASE_DIR, "default_images", filename)
+                with open(path, "rb") as f:
+                    resume.blog_set.create(
+                        category=category,
+                        description=description,
+                        title=title,
+                        img=ContentFile(f.read(), name=filename),
+                    )
+            except Exception:
+                # If default image not available, skip creating blog to avoid breaking signup
+                pass
+
+        _create_one("blog1.jpg", "Perfect", "How to be Perfect")
+        _create_one("blog2.jpg", "Awesome", "How to be Awesome")
 
     def __create_about(self, resume):  # noqa
         About.objects.create(
@@ -187,70 +232,60 @@ class ApiSignupView(APIView):
 
     def __create_educations(self, resume):  # noqa
         resume.education_set.create(
-            from_date=datetime.date(year=2000, month=10, day=20),
+            start_date=datetime.date(year=2000, month=10, day=20),
             title="Ph.D in Awesome",
             place="ABC University, Los Angeles, CA",
-            bg="#FFF4F4",
         )
 
         resume.education_set.create(
-            from_date=datetime.date(year=2000, month=10, day=20),
+            start_date=datetime.date(year=2000, month=10, day=20),
             title="Ph.D in Amazingness",
             place="Harvard University, Cambridge, MA",
-            bg="#FFF1FB",
         )
 
         resume.education_set.create(
-            from_date=datetime.date(year=2000, month=10, day=20),
+            start_date=datetime.date(year=2000, month=10, day=20),
             title="Ph.D in Amazingness",
             place="Oxford University, England",
-            bg="#FFF4F4",
         )
 
     def __create_experiences(self, resume):  # noqa
         resume.experience_set.create(
-            from_date=datetime.date(year=2000, month=10, day=1),
+            start_date=datetime.date(year=2000, month=10, day=1),
             end_date=datetime.date(year=2000, month=10, day=1),
             title="Head of Heads",
             place="Facebook",
-            bg="#EEF5FA",
         )
 
         resume.experience_set.create(
-            from_date=datetime.date(year=2000, month=10, day=1),
+            start_date=datetime.date(year=2000, month=10, day=1),
             end_date=datetime.date(year=2000, month=10, day=1),
             title="Head of Heads",
             place="Google",
-            bg="#F2F4FF",
         )
 
         resume.experience_set.create(
-            from_date=datetime.date(year=2000, month=10, day=1),
+            start_date=datetime.date(year=2000, month=10, day=1),
             end_date=datetime.date(year=2000, month=10, day=1),
             title="Head of Heads",
             place="Amazon",
-            bg="#EEF5FA",
         )
 
     def __create_working_skills(self, resume):  # noqa
         resume.workingskills_set.create(
             title="Amazing",
-            color="#FF6464",
             percentage=99
         )
         resume.workingskills_set.create(
             title="Perfect",
-            color="#9272D4",
             percentage=98
         )
         resume.workingskills_set.create(
             title="Brilliant",
-            color="#5185D4",
             percentage=97
         )
         resume.workingskills_set.create(
             title="Awesome",
-            color="#CA56F2",
             percentage=100
         )
 
@@ -261,16 +296,99 @@ class ApiSignupView(APIView):
             )
 
     def __create_what_i_dos(self, resume):  # noqa
-        for t, bg in [
-            ("Awesome at something", "#FCF4FF"),
-            ("Perfect at something", "#FEFAF0"),
-            ("Best at something", "#FCF4FF"),
-            ("Amazing at something", "#FFF4F4"),
-            ("Brilliant at something", "#FFF0F8"),
-            ("Again Awesome at something", "#F3FAFF"),
+        for t in [
+            "Awesome at something",
+            "Perfect at something",
+            "Best at something",
+            "Amazing at something",
+            "Brilliant at something",
+            "Again Awesome at something",
         ]:
             resume.whatido_set.create(
                 title=t,
-                bg=bg,
-                des="Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam euismod volutpat."
+                description="Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam euismod volutpat."
             )
+
+
+class MyResumeViewV2(APIView):
+    """
+    Upsert-style endpoint for the authenticated user's resume.
+    - GET: return current resume (404 if none)
+    - POST: create or update (partial allowed)
+    - PUT: full replace (all sections you include will overwrite)
+    - PATCH: partial update (only provided fields/sections are touched)
+    """
+
+    def get_object(self, request):
+        return Resume.objects.filter(user=request.user).first()
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object(request)
+        if not instance:
+            return Response({"detail": "Resume not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ResumeDeepWriteSerializerV2(instance, context={"request": request})
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Create or update (upsert). Allows partial payloads.
+        """
+        instance = self.get_object(request)
+        if instance:
+            serializer = ResumeDeepWriteSerializerV2(
+                instance, data=request.data, partial=True, context={"request": request}
+            )
+        else:
+            serializer = ResumeDeepWriteSerializerV2(
+                data=request.data, context={"request": request}
+            )
+        serializer.is_valid(raise_exception=True)
+        saved = serializer.save()
+        return Response(
+            ResumeDeepWriteSerializerV2(saved, context={"request": request}).data,
+            status=status.HTTP_200_OK if instance else status.HTTP_201_CREATED,
+        )
+
+    def put(self, request, *args, **kwargs):
+        """
+        Full update (idempotent). If no resume exists yet, create one.
+        """
+        instance = self.get_object(request)
+        if instance:
+            serializer = ResumeDeepWriteSerializerV2(
+                instance, data=request.data, partial=False, context={"request": request}
+            )
+        else:
+            serializer = ResumeDeepWriteSerializerV2(
+                data=request.data, context={"request": request}
+            )
+        serializer.is_valid(raise_exception=True)
+        saved = serializer.save()
+        return Response(
+            ResumeDeepWriteSerializerV2(saved, context={"request": request}).data,
+            status=status.HTTP_200_OK if instance else status.HTTP_201_CREATED,
+        )
+
+    def patch(self, request, *args, **kwargs):
+        """
+        Partial update; only fields/sections present are changed.
+        """
+        instance = self.get_object(request)
+        if not instance:
+            # Create-on-patch if you prefer; otherwise return 404
+            serializer = ResumeDeepWriteSerializerV2(
+                data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            saved = serializer.save()
+            return Response(
+                ResumeDeepWriteSerializerV2(saved, context={"request": request}).data,
+                status=status.HTTP_201_CREATED,
+            )
+
+        serializer = ResumeDeepWriteSerializerV2(
+            instance, data=request.data, partial=True, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        saved = serializer.save()
+        return Response(ResumeDeepWriteSerializerV2(saved, context={"request": request}).data)

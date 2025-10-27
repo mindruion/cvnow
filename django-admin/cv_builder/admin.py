@@ -53,7 +53,7 @@ class LanguageInline(admin.StackedInline):
 class AdminProfile(ModelAdmin):
     fields = (
         'profession', 'phone', 'email', 'location', 'birth_date', 'facebook', 'linkedin',
-        'avatar', 'theme', 'include_blogs', 'can_download_cv', 'language'
+        'avatar', 'theme', 'include_blogs', 'can_download_cv', 'language_used'
     )
     list_display = ('__str__', 'phone', 'email', 'include_blogs', 'can_download_cv', 'is_active', 'admin_thumbnail',
                     'language_used')

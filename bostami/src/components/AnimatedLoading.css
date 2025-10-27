@@ -1,0 +1,198 @@
+.animated-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(180deg, #0c1445 0%, #1a1a2e 50%, #16213e 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.animated-loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 30%),
+              radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 40%),
+              radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 60%);
+  animation: backgroundPulse 8s ease-in-out infinite;
+}
+
+/* Floating stars */
+.floating-stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.floating-star {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: starFloat infinite ease-in-out;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+}
+
+.star-shape {
+  color: white;
+  font-size: inherit;
+  line-height: 1;
+  animation: starTwinkle infinite ease-in-out;
+  animation-duration: var(--twinkle-speed);
+}
+
+/* Different star types */
+.star-type-0 {
+  color: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+}
+
+.star-type-1 {
+  color: rgba(255, 255, 255, 0.7);
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+}
+
+.star-type-2 {
+  color: rgba(255, 255, 255, 0.8);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+.star-type-3 {
+  color: rgba(255, 255, 255, 0.6);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
+}
+
+.star-type-4 {
+  color: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
+}
+
+
+/* Animations */
+@keyframes slowFloat {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) scale(1) rotate(0deg);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateY(-3px) translateX(2px) scale(1.02) rotate(15deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-6px) translateX(-1px) scale(1.05) rotate(30deg);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(-2px) translateX(-3px) scale(1.01) rotate(45deg);
+    opacity: 0.7;
+  }
+}
+
+/* Ensure the animation is available globally */
+.slowFloat {
+  animation: slowFloat infinite ease-in-out;
+}
+
+@keyframes starTwinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+    filter: brightness(0.5);
+  }
+  25% {
+    opacity: 0.7;
+    transform: scale(1.1);
+    filter: brightness(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+    filter: brightness(1.2);
+  }
+  75% {
+    opacity: 0.5;
+    transform: scale(1.05);
+    filter: brightness(0.7);
+  }
+}
+
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 0%;
+  }
+  25% {
+    background-position: 100% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes backgroundPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+/* Dark mode variant */
+@media (prefers-color-scheme: dark) {
+  .animated-loading {
+    background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0d1117 100%);
+  }
+  
+  .floating-star {
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+  }
+  
+  .star-type-0 {
+    color: rgba(255, 255, 255, 0.8);
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+  }
+  
+  .star-type-1 {
+    color: rgba(255, 255, 255, 0.6);
+    filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.2));
+  }
+  
+  .star-type-2 {
+    color: rgba(255, 255, 255, 0.7);
+    filter: drop-shadow(0 0 9px rgba(255, 255, 255, 0.4));
+  }
+  
+  .star-type-3 {
+    color: rgba(255, 255, 255, 0.5);
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.1));
+  }
+  
+  .star-type-4 {
+    color: rgba(255, 255, 255, 0.8);
+    filter: drop-shadow(0 0 11px rgba(255, 255, 255, 0.5));
+  }
+}
+

@@ -44,7 +44,7 @@
             {% endblock %}
             {% block userlinks %}
                 {% if user.subdomain_name %}
-                    <a href="https://{{ user.subdomain_name }}.cvworld.info">{% translate 'View site' %}</a> /
+                    <a href="https://{{ user.subdomain_name }}.cloud-room.club">{% translate 'View site' %}</a> /
                 {% endif %}
                 {% if user.is_active and user.is_staff %}
                     {% url 'django-admindocs-docroot' as docsroot %}

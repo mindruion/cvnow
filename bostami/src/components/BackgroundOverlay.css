@@ -1,0 +1,51 @@
+.background-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+  transition: opacity 0.4s ease;
+}
+
+.background-overlay__item {
+  position: absolute;
+  color: var(--overlay-color);
+  opacity: var(--overlay-opacity);
+  mix-blend-mode: var(--overlay-blend-mode, screen);
+  animation-name: overlayFloat;
+  animation-iteration-count: infinite;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
+}
+
+@keyframes overlayFloat {
+  0% {
+    transform: translate3d(0, 0, 0) scale(var(--scale, 1));
+  }
+  30% {
+    transform: translate3d(
+        var(--float-x-neg, -12px),
+        var(--float-y, 12px),
+        0
+      )
+      scale(calc(var(--scale, 1) * 0.96));
+  }
+  60% {
+    transform: translate3d(
+        var(--float-x, 12px),
+        var(--float-y-neg, -12px),
+        0
+      )
+      scale(calc(var(--scale, 1) * 1.04));
+  }
+  85% {
+    transform: translate3d(
+        var(--float-x-weak, 6px),
+        var(--float-y-weak, 6px),
+        0
+      )
+      scale(calc(var(--scale, 1) * 0.99));
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(var(--scale, 1));
+  }
+}

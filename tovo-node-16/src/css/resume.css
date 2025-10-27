@@ -1,0 +1,54 @@
+/* Collapsible card header */
+.resume-card-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: .875rem 1rem; border-bottom: 1px solid rgba(0,0,0,.06);
+    cursor: pointer; border-radius: .75rem .75rem 0 0;
+  }
+  .resume-card-header.open { border-bottom-color: transparent; }
+  .resume-card-header__text h5 { font-weight: 600; }
+  .resume-card-header__actions { display:flex; align-items:center; gap:.5rem; }
+  
+  /* Collapsible body */
+  .resume-card-body.collapsed { display:none; }
+  .resume-card-body.open { padding: 1rem; }
+  
+  /* Grid like Experience */
+  .resume-card-grid {
+    display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  }
+  @media (max-width: 768px){
+    .resume-card-grid { grid-template-columns: 1fr; }
+  }
+  
+  /* Switch */
+  .form-switch-label { display:flex; align-items:center; gap:.5rem; cursor:pointer; user-select:none; }
+  .form-switch-input { accent-color: var(--primary, #10b981); width: 18px; height: 18px; }
+  
+  /* Sticky save actions */
+  .resume-sticky-actions{
+    position: sticky; bottom: 0; padding: .75rem 0; background: linear-gradient(180deg, rgba(255,255,255,0), #fff 35%);
+    display:flex; justify-content:center;
+  }
+  
+  /* Buttons (use same tokens as Experience) */
+  .resume-add-btn{
+    display:inline-flex; align-items:center; gap:.5rem;
+    padding:.5rem .875rem; border:1px solid rgba(16,185,129,.25);
+    border-radius: 999px; color:#059669; background: rgba(16,185,129,.08);
+  }
+  .resume-add-btn:hover{ background: rgba(16,185,129,.12); }
+  
+  .resume-save-btn{
+    min-width: 140px; padding:.75rem 1.25rem;
+    border:0; color:#fff; border-radius: 999px;
+    background: linear-gradient(135deg, #06b6d4, #10b981);
+    box-shadow: 0 8px 20px rgba(16,185,129,.25);
+  }
+  .resume-save-btn:disabled{ opacity:.7; }
+  
+  /* Keep existing .resume-remove-btn from Experience */
+  @media (max-width: 576px){
+    .resume-card-header { padding: .75rem .875rem; }
+    .resume-sticky-actions { padding-bottom: .5rem; }
+    .resume-save-btn { width: 100%; }
+  }

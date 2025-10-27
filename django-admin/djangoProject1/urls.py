@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 urlpatterns = static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + [
     path('', include("cv_builder.urls")),
     path('i18n/', include('django.conf.urls.i18n')),
+    path("api/auth/", include("accounts.urls", namespace="accounts")),
 ] + i18n_patterns(
     path('', admin.site.urls),
     path('rosetta/', include('rosetta.urls')),  # NEW

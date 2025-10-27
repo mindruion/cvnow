@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from environ import environ
@@ -17,20 +18,30 @@ from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = environ.Env()
-environ.Env.read_env(f"{BASE_DIR}/.env")
+env = environ.Env(
+    DJANGO_DEBUG=(bool, True),
+)
+environ.Env.read_env(str(BASE_DIR / ".env"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-230#1qk&qn0m7chtl=dzm9@+s@qj(bw12^v669+c6lkwo9pbsz'
+DEFAULT_SECRET_KEY = 'django-insecure-230#1qk&qn0m7chtl=dzm9@+s@qj(bw12^v669+c6lkwo9pbsz'
+SECRET_KEY = env("DJANGO_SECRET_KEY", default=DEFAULT_SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DJANGO_DEBUG")
 
-ALLOWED_HOSTS = ["*"]
+ROOT_DOMAIN = env("ROOT_DOMAIN", default="cvnow.me")
+ALLOWED_HOSTS = env.list(
+    "DJANGO_ALLOWED_HOSTS",
+    default=["cvnow.me", "www.cvnow.me", "api.cvnow.me", "localhost"],
+)
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://\w+\.cvworld\.info",
-    r"^https://cvworld\.info",
-    r"^http://localhost:3000",
+    rf"^https://[\w-]+\.{ROOT_DOMAIN}$",
+    rf"^https://{ROOT_DOMAIN}$",
+    r"^http://localhost:3000$",
+    r"^http://localhost:3001$",
+    r"^http://localhost:3002$",
+    r"^http://localhost:3003$",
 ]
 
 # Application definition
@@ -59,8 +70,8 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
-    'django.middleware.locale.LocaleMiddleware',  # new
     "django.middleware.common.CommonMiddleware",
+    'django.middleware.locale.LocaleMiddleware',  # new
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -94,11 +105,11 @@ WSGI_APPLICATION = 'djangoProject1.wsgi.application'
 DATABASES = {
     'default': {
         "ENGINE": 'django.db.backends.postgresql',
-        "NAME": 'cv_db',
-        "USER": 'postgres',
-        "PASSWORD": 'Hey!?IKnowYou',
-        "HOST": env("HOST", default='database_cv'),
-        "PORT": "5434",
+        "NAME": env("DB_NAME", default='cv_db'),
+        "USER": env("DB_USER", default='postgres'),
+        "PASSWORD": env("DB_PASSWORD", default='postgres'),
+        "HOST": env("DB_HOST", default='database_cv'),
+        "PORT": env("DB_PORT", default="5432"),
         'OPTIONS': {
             'connect_timeout': 20,
         }
@@ -149,11 +160,27 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
         'rest_framework.parsers.FormParser',
     ],
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer', ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
-CSRF_TRUSTED_ORIGINS = ['https://*.cvworld.info']
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+CSRF_TRUSTED_ORIGINS = [
+    f'https://*.{ROOT_DOMAIN}',
+    f'https://{ROOT_DOMAIN}',
+]
 STATIC_URL = "/staticfiles/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = (
@@ -164,7 +191,31 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "mediafiles")
 CLOUDFLARE_TOKEN = env("CLOUDFLARE_TOKEN")
 CLOUDFLARE_EMAIL = env("CLOUDFLARE_EMAIL")
 CLOUDFLARE_DOMAIN = env("CLOUDFLARE_DOMAIN")
+CLOUDFLARE_ACCOUNT_ID = env("CLOUDFLARE_ACCOUNT_ID")
+CLOUDFLARE_TUNNEL_ID = env("CLOUDFLARE_TUNNEL_ID")
 CLOUDFLARE_ZONE_ID = env("CLOUDFLARE_ZONE_ID")
 LOCALE_PATHS = [
     BASE_DIR / 'locale/',
 ]
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),   # or days=7
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": True,  # Optional: refresh token changes each use
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "BLACKLIST_AFTER_ROTATION": True,  # Optional: blacklist old refresh tokens
+}
+
+
+EMAIL_BACKEND = "accounts.backends.PatchedSMTPEmailBackend"
+EMAIL_HOST = "smtp-relay.brevo.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "99a287001@smtp-brevo.com")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "b23xs6paCjtTR0zg")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "admin@cvnow.me")
+
+
+# Frontend URLs for deep-links (adjust to your domain)
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_VERIFY_EMAIL_URL = os.getenv("FRONTEND_VERIFY_EMAIL_URL", f"{FRONTEND_URL}/auth/verify-email")
+FRONTEND_RESET_PASSWORD_URL = os.getenv("FRONTEND_RESET_PASSWORD_URL", f"{FRONTEND_URL}/auth/reset-password")

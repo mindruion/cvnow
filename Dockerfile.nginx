@@ -1,8 +1,0 @@
-FROM nginx:alpine
-RUN rm /etc/nginx/conf.d/default.conf
-COPY /build /code/
-RUN mkdir /code/build_landing/
-COPY /build_landing /code/build_landing/
-RUN mkdir /code/_sitdown/
-COPY /__sitdown /code/_sitdown/
-COPY nginx.conf /etc/nginx/conf.d

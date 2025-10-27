@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Slab:wght@300;400;500;600;700;800;900&display=swap");
+
+@layer base {
+  html {
+    @apply font-poppins;
+  }
+}
+html {
+  scroll-behavior: smooth;
+}
+:root {
+  --color-primary: #fa5252;
+  --color-secondary: #dd2476;
+  --color-background: #f3f6f6;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f6f6;
+  --color-text: #111111;
+  --color-text-muted: #7b7b7b;
+  --color-border: #e3e3e3;
+  --color-emphasis: #1d1d1d;
+  --gradient-primary: linear-gradient(135deg, #fa5252 0%, #dd2476 100%);
+  --gradient-primary-hover: linear-gradient(135deg, #dd2476 0%, #fa5252 100%);
+}
+.app-shell {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+}
+.dark {
+  --color-background: #111111;
+  --color-surface: #1d1d1d;
+  --color-surface-muted: #212425;
+  --color-text: #ffffff;
+  --color-text-muted: #a6a6a6;
+  --color-border: #333333;
+  --color-emphasis: #f7f7f7;
+}
+@layer components {
+  .about-box {
+    @apply rounded-xl p-6 flex gap-4;
+    border: 1px solid var(--color-border);
+  }
+  .after-effect {
+    @apply text-7xl font-bold font-robotoSlab inline-block relative transform dark:text-white;
+  }
+  .after-effect::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 2px;
+    width: 8rem;
+    max-width: 12rem;
+    border-radius: 0.375rem;
+    background-image: var(--gradient-primary);
+  }
+  @media (min-width: 768px) {
+    .after-effect::after {
+      width: 12rem;
+    }
+  }
+  .resume-btn {
+    @apply cursor-default px-5 py-2 rounded-lg text-gray-lite;
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-muted);
+  }
+  .socialbtn {
+    @apply w-10 h-10 rounded-lg flex justify-center items-center transition-colors duration-300 ease-in-out;
+    background-color: var(--color-surface-muted);
+  }
+  .socialbtn:hover {
+    background-image: var(--gradient-primary);
+    color: #ffffff;
+  }
+  .fillter-btn {
+    @apply text-gray-lite transition duration-300 cursor-pointer;
+    color: var(--color-text-muted);
+  }
+  .fillter-btn:hover {
+    color: var(--color-primary);
+  }
+  .text-theme-primary {
+    color: var(--color-primary);
+  }
+  .hover-text-theme-primary:hover {
+    color: var(--color-primary);
+  }
+  .dark .hover-text-theme-primary:hover {
+    color: var(--color-primary);
+  }
+  .bg-theme-surface {
+    background-color: var(--color-surface);
+  }
+  .bg-theme-surface-muted {
+    background-color: var(--color-surface-muted);
+  }
+  .gradient-theme {
+    background-image: var(--gradient-primary);
+  }
+  .gradient-theme-hover:hover {
+    background-image: var(--gradient-primary-hover);
+  }
+}

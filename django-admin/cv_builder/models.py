@@ -30,6 +30,17 @@ class Resume(models.Model):
         EN = 'en'
         ro = 'ro'
 
+    class Step(models.TextChoices):
+        started = 'started'
+        step_1 = 'step_1'
+        step_2 = 'step_2'
+        step_3 = 'step_3'
+        step_4 = 'step_4'
+        theme = 'theme'
+        completed = 'completed'
+
+    config = models.JSONField(default=dict, blank=True)
+
     is_active = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=CASCADE)
     profession = models.CharField(max_length=200, null=True)
@@ -46,6 +57,7 @@ class Resume(models.Model):
     private_token_created = models.DateTimeField(null=True)
     can_download_cv = models.BooleanField(default=True)
     include_blogs = models.BooleanField(default=True)
+    step = models.CharField(max_length=50, choices=Step.choices, default=Step.started)
     language_used = models.CharField(max_length=20, choices=Language.choices, default=Language.EN)
 
     avatar = models.ImageField(null=True, blank=True)
@@ -71,7 +83,8 @@ class Resume(models.Model):
         if self.is_private:
             if not self.private_token or self.is_token_expired():
                 self.generate_new_token()
-                self.private_token_created = datetime.datetime.now()
+                # Use timezone-aware now to avoid naive datetime warnings when USE_TZ=True
+                self.private_token_created = now()
                 if not self.private_token_lifetime:
                     self.private_token_lifetime = timedelta(days=1)
 
@@ -114,26 +127,23 @@ class About(AbstractModel):
 
 class WhatIDo(AbstractModel):
     title = models.CharField(max_length=100)
-    des = models.TextField(verbose_name="Description")
-    bg = ColorField(max_length=400, verbose_name="Background color")
-    icon = models.ImageField(null=True, blank=True)
+    description = models.TextField(verbose_name="Description")
 
 
 class AbstractEducation(AbstractModel):
-    from_date = models.DateField()
+    start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    title = models.TextField()
-    place = models.TextField()
-    bg = ColorField(max_length=400)
+    title = models.TextField(null=True, blank=True)
+    place = models.TextField(null=True, blank=True)
 
     @property
     def date(self):
-        start = self.from_date.strftime("%Y %B")
+        start = self.start_date.strftime("%Y %B")
         end = " - Present"
 
         if self.end_date:
             end = " - " + self.end_date.strftime("%Y %B")
-            if (self.end_date.year, self.end_date.month) == (self.from_date.year, self.from_date.month):
+            if (self.end_date.year, self.end_date.month) == (self.start_date.year, self.start_date.month):
                 end = ""
 
         return f"{start}{end}"
@@ -143,23 +153,30 @@ class AbstractEducation(AbstractModel):
 
 
 class Education(AbstractEducation):
-    ...
+    degree = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    field_of_study = models.TextField(null=True, blank=True)
+    institution = models.TextField(null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+    current = models.BooleanField(default=False)
 
 
 class Experience(AbstractEducation):
-    ...
+    role = models.TextField(null=True, blank=True)
+    company = models.TextField(null=True, blank=True)
+    location = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    current = models.BooleanField(default=False)
 
 
 class WorkingSkills(AbstractModel):
     percentage = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
     title = models.CharField(max_length=20)
-    color = ColorField(max_length=400, default="#5185D4")
 
 
 class Language(AbstractModel):
     percentage = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
     title = models.CharField(max_length=20)
-    color = ColorField(max_length=400, default="#5185D4")
 
 
 class Knowledge(AbstractModel):
@@ -186,7 +203,6 @@ class Blog(AbstractModel):
     category = models.CharField(max_length=400)
     title = models.CharField(max_length=400)
     description = models.TextField()
-    bg = ColorField(default="#EEFBFF")
 
     @property
     def resume_name(self):
